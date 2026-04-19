@@ -37,9 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "corsheaders",          # ← agregar
+    "rest_framework",
+    "proveedores_app"
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",    # ← debe ir PRIMERO
+    "django.middleware.common.CommonMiddleware"
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,6 +52,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",    # Vite (React) — puerto por defecto
+    "http://localhost:3000",    # Create React App — por si usa este
 ]
 
 ROOT_URLCONF = 'provit_core.urls'
