@@ -1,4 +1,4 @@
-
+import type { RolId } from "../types/layout.types";
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -9,7 +9,7 @@ export interface Usuario {
   nombre: string;
   apellido: string;
   email: string;
-  rol: string;
+  rol: RolId; 
 }
 
 export interface AuthResponse {

@@ -7,7 +7,12 @@ export const loginService = async (credentials: LoginCredentials): Promise<AuthR
       if (credentials.email === 'operador@provit.com' && credentials.password === '123456') {
         resolve({
           token: 'jwt-token-simulado-123',
-          user: { id: 1, nombre: 'Juan', apellido: 'Pérez', email: 'operador@provit.com', rol: 'Operador' }
+          user: { id: 1, nombre: 'Juan', apellido: 'Pérez', email: 'operador@provit.com', rol: 1 }
+        });
+      } else if (credentials.email === 'admin@provit.com' && credentials.password === '123456') {
+        resolve({
+          token: 'jwt-token-simulado-123',
+          user: { id: 2, nombre: 'Carlos', apellido: 'López', email: 'admin@provit.com', rol: 2 }
         });
       } else {
         reject(new Error('Credenciales inválidas. Por favor, intenta de nuevo.'));
