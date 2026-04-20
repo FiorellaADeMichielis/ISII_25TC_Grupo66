@@ -22,6 +22,15 @@ export const useAuth = () => {
       setLoading(false);
     }
   };
+  const handleLogout = () => {
+      // Eliminamos todo rastro del usuario en el navegador
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Si tuvieras un endpoint en Django para invalidar el token, 
+      // la llamada a la API (ej: authService.logout()) iría aquí.
+    };
 
-  return { handleLogin, loading, error };
+    // No olvides exportar la nueva función aquí abajo
+    return { handleLogin, handleLogout, loading, error };
 };

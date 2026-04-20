@@ -1,13 +1,14 @@
 import { Search, Bell, Settings } from 'lucide-react';
 import type { TopbarProps } from '../../types/layout.types';
 
+
 export default function Topbar({ pageTitle }: TopbarProps) {
   return (
     <header className="h-14 bg-white border-b border-slate-200 flex items-center px-5 gap-3">
       
       {/* Título de la Página */}
       <h1 className="text-[15px] font-medium text-slate-900 flex-1 m-0">
-        {pageTitle}
+        Bienvenido al {pageTitle}
       </h1>
 
       {/* Barra de Búsqueda */}

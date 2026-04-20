@@ -4,10 +4,10 @@ export const loginService = async (credentials: LoginCredentials): Promise<AuthR
   // Simula la llamada HTTP al backend en Django porque todavia no tenemos el backend listo.
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (credentials.email === 'admin@provit.com' && credentials.password === '123456') {
+      if (credentials.email === 'operador@provit.com' && credentials.password === '123456') {
         resolve({
           token: 'jwt-token-simulado-123',
-          user: { id: 1, nombre: 'Juan', apellido: 'Pérez', email: 'admin@provit.com', rol: 'Administrador' }
+          user: { id: 1, nombre: 'Juan', apellido: 'Pérez', email: 'operador@provit.com', rol: 'Operador' }
         });
       } else {
         reject(new Error('Credenciales inválidas. Por favor, intenta de nuevo.'));

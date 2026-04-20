@@ -56,7 +56,6 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",    # Vite (React) — puerto por defecto
-    "http://localhost:3000",    # Create React App — por si usa este
 ]
 
 ROOT_URLCONF = 'provit_core.urls'
