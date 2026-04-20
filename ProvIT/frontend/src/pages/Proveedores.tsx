@@ -4,6 +4,7 @@ import { useProveedores } from '../hooks/useProveedores';
 import { ModalFormularioProveedor } from '../components/proveedores/modalProveedores';
 import type { Proveedor } from '../types/proveedor.types';
 
+
 export const Proveedores = () => {
   const { proveedores, loading, error, agregarProveedor, editarProveedor, eliminarProveedor } = useProveedores();
 
