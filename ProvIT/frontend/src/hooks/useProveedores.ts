@@ -1,16 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { proveedoresService } from '../services/proveedorService';
+import { useAuthContext } from '../context/AuthContext';
+import { ROLES } from '../types/layout.types';
 import type { Proveedor } from '../types/proveedor.types';
 
 export const useProveedores = () => {
+  // 1. Contexto de Usuario y Permisos
+  const { user } = useAuthContext();
+  const rolActual = user?.rol ?? ROLES.OPERADOR;
+  const puedeEliminar = rolActual === ROLES.ADMINISTRADOR || rolActual === ROLES.GERENTE;
+  const incluirInactivos = rolActual === ROLES.ADMINISTRADOR || rolActual === ROLES.GERENTE;
+
+  // 2. Estado de Datos (El "Modelo")
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const cargarProveedores = useCallback(async (incluirTodos: boolean = false) => {
+  // 3. Estado de la Interfaz (La "Vista")
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [proveedorEditando, setProveedorEditando] = useState<Proveedor | null>(null);
+
+  // === LÓGICA DE DATOS (API) ===
+  const cargarProveedores = useCallback(async (traerTodos: boolean = false) => {
     setLoading(true);
     try {
-      const data = await proveedoresService.obtenerTodos(incluirTodos);
+      const data = await proveedoresService.obtenerTodos(traerTodos);
       setProveedores(data);
     } catch (err: any) {
       setError('Error al cargar proveedores. Verifica la conexión con Django.');
@@ -19,10 +33,9 @@ export const useProveedores = () => {
     }
   }, []);
 
-  // Por defecto, al entrar a la pantalla, cargamos TODOS para que el Admin los vea.
   useEffect(() => {
-    cargarProveedores(true); 
-  }, [cargarProveedores]);
+    cargarProveedores(incluirInactivos); 
+  }, [cargarProveedores, incluirInactivos]);
 
   const agregarProveedor = async (nuevoProv: Omit<Proveedor, 'id'>) => {
     try {
@@ -46,38 +59,56 @@ export const useProveedores = () => {
     }
   };
 
-  // Esta función ahora dispara el DELETE en Django 
-  const eliminarProveedor = async (id: number) => {
-    try {
-      await proveedoresService.eliminar(id);
+  // === HANDLERS DE LA INTERFAZ ===
+  const abrirModalNuevo = () => {
+    setProveedorEditando(null);
+    setIsModalOpen(true);
+  };
 
-      setProveedores((prev) => prev.map(p => p.id === id ? { ...p, estado: 'Inactivo' } : p));
-    } catch (err) {
-      setError('No se pudo eliminar el proveedor');
+  const abrirModalEdicion = (prov: Proveedor) => {
+    setProveedorEditando(prov);
+    setIsModalOpen(true);
+  };
+
+  const cerrarModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleGuardarDesdeModal = async (datos: Omit<Proveedor, "id">): Promise<boolean> => {
+    if (proveedorEditando) {
+      return await editarProveedor(proveedorEditando.id, datos);
+    }
+    return await agregarProveedor(datos);
+  };
+
+  const handleEliminar = async (id: number): Promise<void> => {
+    if (!puedeEliminar) {
+      alert("No tenés permisos para eliminar proveedores.");
+      return;
+    }
+    if (window.confirm("¿Estás seguro de que deseás eliminar este proveedor?")) {
+      try {
+        await proveedoresService.eliminar(id);
+        setProveedores((prev) => prev.map(p => p.id === id ? { ...p, estado: 'Inactivo' } : p));
+      } catch (err) {
+        setError('No se pudo eliminar el proveedor');
+      }
     }
   };
 
-  // NUEVA FUNCIÓN: Reactivar
-  const reactivarProveedor = async (id: number) => {
-    try {
-      const reactivado = await proveedoresService.reactivar(id);
-      // Actualizo el estado local a Activo
-      setProveedores((prev) => prev.map(p => p.id === id ? reactivado : p));
-      return true;
-    } catch (err) {
-      setError('No se pudo reactivar el proveedor. ¿Tienes permisos de Administrador?');
-      return false;
-    }
-  };
-
+  // Exponemos todo a la vista de Proveedores.tsx
   return {
     proveedores,
     loading,
     error,
-    agregarProveedor,
-    editarProveedor,
-    eliminarProveedor,
-    reactivarProveedor, 
-    cargarProveedores
+    isModalOpen,
+    proveedorEditando,
+    rolActual,
+    puedeEliminar,
+    abrirModalNuevo,
+    abrirModalEdicion,
+    cerrarModal,
+    handleGuardarDesdeModal,
+    handleEliminar
   };
 };

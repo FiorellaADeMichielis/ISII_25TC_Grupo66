@@ -1,37 +1,23 @@
-import { useState } from "react";
 import { Plus, Edit2, Trash2, Building2 } from "lucide-react";
-import { useProveedores } from "../hooks/useProveedores";
-import { useAuthContext } from "../context/AuthContext";
 import { ModalFormularioProveedor } from "../components/proveedores/modalProveedores";
-import { ROLES } from "../types/layout.types";
-import type { Proveedor } from "../types/proveedor.types";
+import { useProveedores } from "../hooks/useProveedores";
 
 export const Proveedores = () => {
-  const { proveedores, loading, error, agregarProveedor, editarProveedor, eliminarProveedor } = useProveedores();
-  const { user } = useAuthContext();
-
-  const [isModalOpen,        setIsModalOpen]        = useState(false);
-  const [proveedorEditando,  setProveedorEditando]  = useState<Proveedor | null>(null);
-
-  const rolActual = user?.rol ?? ROLES.OPERADOR;
-  const puedeEliminar = rolActual === ROLES.ADMINISTRADOR || rolActual === ROLES.GERENTE;
-
-  const handleGuardarDesdeModal = async (datos: Omit<Proveedor, "id">): Promise<boolean> => {
-    if (proveedorEditando) {
-      return await editarProveedor(proveedorEditando.id, datos);
-    }
-    return await agregarProveedor(datos);
-  };
-
-  const handleEliminar = async (id: number): Promise<void> => {
-    if (!puedeEliminar) {
-      alert("No tenés permisos para eliminar proveedores.");
-      return;
-    }
-    if (window.confirm("¿Estás seguro de que deseás eliminar este proveedor?")) {
-      await eliminarProveedor(id);
-    }
-  };
+  // Consumimos TODO desde el hook personalizado, que ahora maneja toda la lógica de proveedores, incluyendo el estado del modal y el proveedor en edición
+  const {
+    proveedores,
+    loading,
+    error,
+    isModalOpen,
+    proveedorEditando,
+    rolActual,
+    puedeEliminar,
+    abrirModalNuevo,
+    abrirModalEdicion,
+    cerrarModal,
+    handleGuardarDesdeModal,
+    handleEliminar
+  } = useProveedores();
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -48,7 +34,7 @@ export const Proveedores = () => {
           </div>
         </div>
         <button
-          onClick={() => { setProveedorEditando(null); setIsModalOpen(true); }}
+          onClick={abrirModalNuevo}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm"
         >
           <Plus size={20} />
@@ -112,7 +98,7 @@ export const Proveedores = () => {
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
                     <button
-                      onClick={() => { setProveedorEditando(prov); setIsModalOpen(true); }}
+                      onClick={() => abrirModalEdicion(prov)}
                       className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     >
                       <Edit2 size={18} />
@@ -139,7 +125,7 @@ export const Proveedores = () => {
       {/* Modal */}
       <ModalFormularioProveedor
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={cerrarModal}
         proveedorEditando={proveedorEditando}
         onGuardar={handleGuardarDesdeModal}
         rolUsuario={rolActual}
