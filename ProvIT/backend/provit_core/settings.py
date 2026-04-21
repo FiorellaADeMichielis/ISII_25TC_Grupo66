@@ -85,7 +85,7 @@ DATABASES = {
     "default": {
         "ENGINE": "mssql",
         "NAME": "ProvitBD",                    # ← nombre de tu BD
-        "HOST": "DESKTOP-IDH7B7D\\SQLEXPRESS", # ← nombre de tu servidor
+        "HOST": "ALCACHOFIO\\SQLEXPRESS", # ← nombre de tu servidor
         "PORT": "",                             # ← vacío, SQL Express usa puerto dinámico
         "USER": "",                             # ← vacío si usás Windows Authentication
         "PASSWORD": "",                         # ← vacío si usás Windows Authentication

@@ -15,9 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import path, include
+from django.http import HttpResponse
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('proveedores_app.urls')),  # Incluimos las URLs de proveedores_app
+    path('api/', include('proveedores_app.urls')),  # ← era 'api.urls'
+    path('', lambda request: HttpResponse('API corriendo. Frontend en :5173')),
 ]
