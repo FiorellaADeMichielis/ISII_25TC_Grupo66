@@ -157,13 +157,21 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """
         Crea el proveedor y sus direcciones en una sola transacción.
-        Si algo falla, se hace rollback automático (atómico via services.py).
         """
-        direcciones_data = validated_data.pop("direcciones", [])
+        # 1. Sacamos las direcciones validadas para evitar conflictos
+        validated_data.pop("direcciones", [])
         proveedor = Proveedor.objects.create(**validated_data)
 
-        for dir_data in direcciones_data:
-            Direccion.objects.create(fk_proveedor=proveedor, **dir_data)
+        # 2. Leemos directamente del payload original (initial_data)
+        direcciones_raw = self.initial_data.get("direcciones", [])
+
+        for dir_data in direcciones_raw:
+            Direccion.objects.create(
+                fk_proveedor=proveedor,
+                calle=dir_data.get("calle"),
+                altura=dir_data.get("altura"),
+                fk_localidad_id=dir_data.get("fk_localidad") # Usamos _id para asignar directamente el número
+            )
 
         return proveedor
 
@@ -174,21 +182,28 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         """
         Actualiza los campos del proveedor.
-        Para las direcciones usa estrategia "reemplazar":
-        elimina las existentes y recrea las nuevas.
-        Esto simplifica la lógica para el MVP (HU#3.2).
+        Para las direcciones usa estrategia "reemplazar".
         """
-        direcciones_data = validated_data.pop("direcciones", None)
+        # 1. Evita que DRF intente guardar las direcciones anidadas
+        validated_data.pop("direcciones", None)
 
-        # Actualizar campos del proveedor
+        # 2. Actualiza campos del proveedor
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Si se envían direcciones, reemplazar las existentes
-        if direcciones_data is not None:
+        # 3. Lee del payload crudo para evadir el filtrado del partial=True
+        direcciones_raw = self.initial_data.get("direcciones", None)
+
+        # 4. Si se envían direcciones, reemplaza las existentes
+        if direcciones_raw is not None:
             instance.direcciones.all().delete()
-            for dir_data in direcciones_data:
-                Direccion.objects.create(fk_proveedor=instance, **dir_data)
+            for dir_data in direcciones_raw:
+                Direccion.objects.create(
+                    fk_proveedor=instance,
+                    calle=dir_data.get("calle"),
+                    altura=dir_data.get("altura"),
+                    fk_localidad_id=dir_data.get("fk_localidad") # Usa _id para asignar directamente el número
+                )
 
         return instance

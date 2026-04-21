@@ -221,6 +221,7 @@ export const ModalFormularioProveedor = ({ isOpen, onClose, proveedorEditando, o
                 <SelectorUbicacion 
                   localidadSeleccionada={formData.direcciones[0]?.fk_localidad || ''}
                   onChangeLocalidad={(idLoc) => handleDireccionChange('fk_localidad', idLoc)}
+                  provinciaInicial={formData.direcciones[0]?.id_provincia}
                 />
               </div>
             </div>

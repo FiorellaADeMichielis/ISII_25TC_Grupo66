@@ -2,6 +2,7 @@ export interface Direccion {
   calle: string;
   altura: number;
   fk_localidad: number;
+  id_provincia?: number;
 }
 
 export interface Proveedor {

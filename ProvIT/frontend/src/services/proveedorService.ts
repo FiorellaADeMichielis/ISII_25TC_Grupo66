@@ -7,10 +7,24 @@ interface RespuestaBackend<T> {
   data: T;
 }
 
-interface DireccionBackend {
+// === INTERFACES DE LECTURA (Lo que devuelve GET/POST/PATCH) ===
+interface ProvinciaAnidada {
+  id_provincia: number;
+  nombre_provincia: string;
+}
+
+interface LocalidadAnidada {
+  id_localidad: number;
+  codigo_postal: number;
+  nombre_localidad: string;
+  provincia: ProvinciaAnidada;
+}
+
+interface DireccionBackendLectura {
+  id_direccion?: number;
   calle: string;
   altura: number;
-  fk_localidad: number;
+  localidad: LocalidadAnidada; 
 }
 
 interface ProveedorBackend {
@@ -21,10 +35,10 @@ interface ProveedorBackend {
   telefono: string;
   estado: boolean;
   score_riesgo_actual?: number;
-  direcciones: DireccionBackend[];
+  direcciones: DireccionBackendLectura[];
 }
 
-// Mapper: Backend -> Frontend
+// Mapper: Backend -> Frontend (Aplana el JSON anidado de Django)
 const mapearProveedor = (p: ProveedorBackend): Proveedor => ({
   id:       p.id_proveedor,
   nombre:   p.nombre_proveedor,
@@ -32,18 +46,32 @@ const mapearProveedor = (p: ProveedorBackend): Proveedor => ({
   email:    p.correo_proveedor,
   telefono: p.telefono,
   estado:   p.estado ? 'Activo' : 'Inactivo',
-  direcciones: p.direcciones || [],
+  direcciones: p.direcciones?.map(d => ({
+    calle: d.calle,
+    altura: d.altura,
+    fk_localidad: d.localidad.id_localidad,
+    id_provincia: d.localidad.provincia.id_provincia
+  })) || [],
 });
 
-// Mapper: Frontend -> Backend
+// Mapper: Frontend -> Backend (Arma el payload plano que espera ProveedorWriteSerializer)
 const mapearABackend = (data: Partial<Proveedor>) => {
   const payload: any = {};
+  
   if (data.nombre !== undefined) payload.nombre_proveedor = data.nombre;
   if (data.email !== undefined) payload.correo_proveedor = data.email;
   if (data.cuit !== undefined) payload.cuit = data.cuit;
   if (data.telefono !== undefined) payload.telefono = data.telefono;
   if (data.estado !== undefined) payload.estado = data.estado === 'Activo';
-  if (data.direcciones !== undefined) payload.direcciones = data.direcciones;
+  
+  if (data.direcciones !== undefined) {
+    payload.direcciones = data.direcciones.map(d => ({
+      calle: d.calle,
+      altura: d.altura,
+      fk_localidad: d.fk_localidad
+    }));
+  }
+  
   return payload;
 };
 

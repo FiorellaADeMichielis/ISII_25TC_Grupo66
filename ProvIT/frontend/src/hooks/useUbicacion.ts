@@ -9,6 +9,18 @@ export const useUbicaciones = (provinciaInicial?: number) => {
   const [loadingProvincias, setLoadingProvincias] = useState(false);
   const [loadingLocalidades, setLoadingLocalidades] = useState(false);
 
+  // === AGREGAR ESTE NUEVO EFFECT ===
+  // Si el modal carga los datos "un milisegundo tarde", este effect 
+  // atrapa el cambio y actualiza el select de la provincia.
+  useEffect(() => {
+    if (provinciaInicial) {
+      setProvinciaSeleccionada(provinciaInicial);
+    } else {
+      setProvinciaSeleccionada('');
+    }
+  }, [provinciaInicial]);
+  // =================================
+
   // 1. Cargar provincias al montar el hook
   useEffect(() => {
     const cargarProvincias = async () => {

@@ -81,17 +81,27 @@ export const useProveedores = () => {
     return await agregarProveedor(datos);
   };
 
-  const handleEliminar = async (id: number): Promise<void> => {
+  const handleCambiarEstado = async (prov: Proveedor): Promise<void> => {
     if (!puedeEliminar) {
-      alert("No tenés permisos para eliminar proveedores.");
+      alert("No tenés permisos para cambiar el estado de los proveedores.");
       return;
     }
-    if (window.confirm("¿Estás seguro de que deseás eliminar este proveedor?")) {
+
+    const accion = prov.estado === 'Activo' ? 'dar de baja' : 'reactivar';
+    
+    if (window.confirm(`¿Estás seguro de que deseás ${accion} a ${prov.nombre}?`)) {
       try {
-        await proveedoresService.eliminar(id);
-        setProveedores((prev) => prev.map(p => p.id === id ? { ...p, estado: 'Inactivo' } : p));
+        if (prov.estado === 'Activo') {
+          // Llama al endpoint DELETE /api/proveedores/{id}/
+          await proveedoresService.eliminar(prov.id);
+          setProveedores((prev) => prev.map(p => p.id === prov.id ? { ...p, estado: 'Inactivo' } : p));
+        } else {
+          // Llama al endpoint PATCH /api/proveedores/{id}/reactivar/
+          await proveedoresService.reactivar(prov.id);
+          setProveedores((prev) => prev.map(p => p.id === prov.id ? { ...p, estado: 'Activo' } : p));
+        }
       } catch (err) {
-        setError('No se pudo eliminar el proveedor');
+        setError(`No se pudo ${accion} el proveedor. Verificá la consola.`);
       }
     }
   };
@@ -109,6 +119,6 @@ export const useProveedores = () => {
     abrirModalEdicion,
     cerrarModal,
     handleGuardarDesdeModal,
-    handleEliminar
+    handleCambiarEstado
   };
 };

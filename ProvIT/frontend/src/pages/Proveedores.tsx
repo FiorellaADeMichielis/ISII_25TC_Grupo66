@@ -16,7 +16,7 @@ export const Proveedores = () => {
     abrirModalEdicion,
     cerrarModal,
     handleGuardarDesdeModal,
-    handleEliminar
+    handleCambiarEstado
   } = useProveedores();
 
   return (
@@ -110,7 +110,7 @@ export const Proveedores = () => {
                       <Edit2 size={18} />
                     </button>
                     <button
-                      onClick={() => handleEliminar(prov.id)}
+                      onClick={() => handleCambiarEstado(prov)}
                       disabled={!puedeEliminar}
                       className={`p-2 rounded-lg transition-colors ${
                         puedeEliminar
