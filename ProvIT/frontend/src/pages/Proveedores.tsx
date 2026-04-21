@@ -58,6 +58,7 @@ export const Proveedores = () => {
                 <th className="px-6 py-4">Nombre</th>
                 <th className="px-6 py-4">CUIT</th>
                 <th className="px-6 py-4">Contacto</th>
+                <th className="px-6 py-4">Dirección</th>
                 <th className="px-6 py-4">Estado</th>
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
@@ -86,6 +87,11 @@ export const Proveedores = () => {
                       <span className="text-slate-900">{prov.email}</span>
                       <span className="text-slate-500 text-xs">{prov.telefono}</span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                    {prov.direcciones && prov.direcciones.length > 0 
+                      ? `${prov.direcciones[0].calle} ${prov.direcciones[0].altura}` 
+                      : <span className="text-slate-400 italic">Sin dirección</span>}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${

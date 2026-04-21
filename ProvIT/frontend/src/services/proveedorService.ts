@@ -1,10 +1,16 @@
 import { api } from './api';
-import type { Proveedor } from '../types/proveedor.types';
+import type { Proveedor, Direccion } from '../types/proveedor.types';
 
 interface RespuestaBackend<T> {
   success: boolean;
   mensaje?: string;
   data: T;
+}
+
+interface DireccionBackend {
+  calle: string;
+  altura: number;
+  fk_localidad: number;
 }
 
 interface ProveedorBackend {
@@ -15,6 +21,7 @@ interface ProveedorBackend {
   telefono: string;
   estado: boolean;
   score_riesgo_actual?: number;
+  direcciones: DireccionBackend[];
 }
 
 // Mapper: Backend -> Frontend
@@ -25,9 +32,10 @@ const mapearProveedor = (p: ProveedorBackend): Proveedor => ({
   email:    p.correo_proveedor,
   telefono: p.telefono,
   estado:   p.estado ? 'Activo' : 'Inactivo',
+  direcciones: p.direcciones || [],
 });
 
-// Mapper: Frontend -> Backend (Para POST y PATCH)
+// Mapper: Frontend -> Backend
 const mapearABackend = (data: Partial<Proveedor>) => {
   const payload: any = {};
   if (data.nombre !== undefined) payload.nombre_proveedor = data.nombre;
@@ -35,6 +43,7 @@ const mapearABackend = (data: Partial<Proveedor>) => {
   if (data.cuit !== undefined) payload.cuit = data.cuit;
   if (data.telefono !== undefined) payload.telefono = data.telefono;
   if (data.estado !== undefined) payload.estado = data.estado === 'Activo';
+  if (data.direcciones !== undefined) payload.direcciones = data.direcciones;
   return payload;
 };
 
@@ -47,14 +56,12 @@ export const proveedoresService = {
   },
 
   crear: async (data: Omit<Proveedor, 'id'>) => {
-    // Transformamos los datos antes de enviarlos a Django
     const payloadBackend = mapearABackend(data);
     const response = await api.post<RespuestaBackend<ProveedorBackend>>('/proveedores/', payloadBackend);
     return mapearProveedor(response.data.data);
   },
 
   actualizar: async (id: number, data: Partial<Proveedor>) => {
-    // Transformamos los datos antes de enviarlos a Django
     const payloadBackend = mapearABackend(data);
     const response = await api.patch<RespuestaBackend<ProveedorBackend>>(`/proveedores/${id}/`, payloadBackend);
     return mapearProveedor(response.data.data);

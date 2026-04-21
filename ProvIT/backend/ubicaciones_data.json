@@ -1,0 +1,106 @@
+{
+  "provincias": [
+    { "id": 1, "nombre": "Buenos Aires" },
+    { "id": 2, "nombre": "Capital Federal" },
+    { "id": 3, "nombre": "Catamarca" },
+    { "id": 4, "nombre": "Chaco" },
+    { "id": 5, "nombre": "Chubut" },
+    { "id": 6, "nombre": "Córdoba" },
+    { "id": 7, "nombre": "Corrientes" },
+    { "id": 8, "nombre": "Entre Ríos" },
+    { "id": 9, "nombre": "Formosa" },
+    { "id": 10, "nombre": "Jujuy" },
+    { "id": 11, "nombre": "La Pampa" },
+    { "id": 12, "nombre": "La Rioja" },
+    { "id": 13, "nombre": "Mendoza" },
+    { "id": 14, "nombre": "Misiones" },
+    { "id": 15, "nombre": "Neuquén" },
+    { "id": 16, "nombre": "Río Negro" },
+    { "id": 17, "nombre": "Salta" },
+    { "id": 18, "nombre": "San Juan" },
+    { "id": 19, "nombre": "San Luis" },
+    { "id": 20, "nombre": "Santa Cruz" },
+    { "id": 21, "nombre": "Santa Fe" },
+    { "id": 22, "nombre": "Santiago del Estero" },
+    { "id": 23, "nombre": "Tierra del Fuego" },
+    { "id": 24, "nombre": "Tucumán" }
+  ],
+  "localidades": [
+    { "id": 1, "nombre": "La Plata", "cp": 1900, "provincia_id": 1 },
+    { "id": 2, "nombre": "Mar del Plata", "cp": 7600, "provincia_id": 1 },
+    { "id": 3, "nombre": "Bahía Blanca", "cp": 8000, "provincia_id": 1 },
+    { "id": 4, "nombre": "Tandil", "cp": 7000, "provincia_id": 1 },
+    
+    { "id": 5, "nombre": "Ciudad Autónoma de Buenos Aires", "cp": 1000, "provincia_id": 2 },
+    
+    { "id": 6, "nombre": "San Fernando del Valle de Catamarca", "cp": 4700, "provincia_id": 3 },
+    
+    { "id": 7, "nombre": "Resistencia", "cp": 3500, "provincia_id": 4 },
+    { "id": 8, "nombre": "Presidencia Roque Sáenz Peña", "cp": 3700, "provincia_id": 4 },
+    { "id": 9, "nombre": "Villa Ángela", "cp": 3540, "provincia_id": 4 },
+    
+    { "id": 10, "nombre": "Rawson", "cp": 9103, "provincia_id": 5 },
+    { "id": 11, "nombre": "Comodoro Rivadavia", "cp": 9000, "provincia_id": 5 },
+    
+    { "id": 12, "nombre": "Córdoba", "cp": 5000, "provincia_id": 6 },
+    { "id": 13, "nombre": "Río Cuarto", "cp": 5800, "provincia_id": 6 },
+    { "id": 14, "nombre": "Villa Carlos Paz", "cp": 5152, "provincia_id": 6 },
+    
+    { "id": 15, "nombre": "Corrientes (Capital)", "cp": 3400, "provincia_id": 7 },
+    { "id": 16, "nombre": "Goya", "cp": 3450, "provincia_id": 7 },
+    { "id": 17, "nombre": "Paso de los Libres", "cp": 3230, "provincia_id": 7 },
+    { "id": 18, "nombre": "Curuzú Cuatiá", "cp": 3460, "provincia_id": 7 },
+    { "id": 19, "nombre": "Mercedes", "cp": 3470, "provincia_id": 7 },
+    
+    { "id": 20, "nombre": "Paraná", "cp": 3100, "provincia_id": 8 },
+    { "id": 21, "nombre": "Concordia", "cp": 3200, "provincia_id": 8 },
+    { "id": 22, "nombre": "Gualeguaychú", "cp": 2820, "provincia_id": 8 },
+    
+    { "id": 23, "nombre": "Formosa", "cp": 3600, "provincia_id": 9 },
+    { "id": 24, "nombre": "Clorinda", "cp": 3610, "provincia_id": 9 },
+    
+    { "id": 25, "nombre": "San Salvador de Jujuy", "cp": 4600, "provincia_id": 10 },
+    
+    { "id": 26, "nombre": "Santa Rosa", "cp": 6300, "provincia_id": 11 },
+    
+    { "id": 27, "nombre": "La Rioja", "cp": 5300, "provincia_id": 12 },
+    
+    { "id": 28, "nombre": "Mendoza", "cp": 5500, "provincia_id": 13 },
+    { "id": 29, "nombre": "San Rafael", "cp": 5600, "provincia_id": 13 },
+    
+    { "id": 30, "nombre": "Posadas", "cp": 3300, "provincia_id": 14 },
+    { "id": 31, "nombre": "Oberá", "cp": 3360, "provincia_id": 14 },
+    { "id": 32, "nombre": "Eldorado", "cp": 3380, "provincia_id": 14 },
+    { "id": 33, "nombre": "Puerto Iguazú", "cp": 3370, "provincia_id": 14 },
+    
+    { "id": 34, "nombre": "Neuquén", "cp": 8300, "provincia_id": 15 },
+    { "id": 35, "nombre": "San Martín de los Andes", "cp": 8370, "provincia_id": 15 },
+    
+    { "id": 36, "nombre": "Viedma", "cp": 8500, "provincia_id": 16 },
+    { "id": 37, "nombre": "San Carlos de Bariloche", "cp": 8400, "provincia_id": 16 },
+    
+    { "id": 38, "nombre": "Salta", "cp": 4400, "provincia_id": 17 },
+    { "id": 39, "nombre": "Cafayate", "cp": 4427, "provincia_id": 17 },
+    
+    { "id": 40, "nombre": "San Juan", "cp": 5400, "provincia_id": 18 },
+    
+    { "id": 41, "nombre": "San Luis", "cp": 5700, "provincia_id": 19 },
+    { "id": 42, "nombre": "Villa Mercedes", "cp": 5730, "provincia_id": 19 },
+    
+    { "id": 43, "nombre": "Río Gallegos", "cp": 9400, "provincia_id": 20 },
+    { "id": 44, "nombre": "El Calafate", "cp": 9405, "provincia_id": 20 },
+    
+    { "id": 45, "nombre": "Santa Fe", "cp": 3000, "provincia_id": 21 },
+    { "id": 46, "nombre": "Rosario", "cp": 2000, "provincia_id": 21 },
+    { "id": 47, "nombre": "Rafaela", "cp": 2300, "provincia_id": 21 },
+    
+    { "id": 48, "nombre": "Santiago del Estero", "cp": 4200, "provincia_id": 22 },
+    { "id": 49, "nombre": "Termas de Río Hondo", "cp": 4220, "provincia_id": 22 },
+    
+    { "id": 50, "nombre": "Ushuaia", "cp": 9410, "provincia_id": 23 },
+    { "id": 51, "nombre": "Río Grande", "cp": 9420, "provincia_id": 23 },
+    
+    { "id": 52, "nombre": "San Miguel de Tucumán", "cp": 4000, "provincia_id": 24 },
+    { "id": 53, "nombre": "Tafí Viejo", "cp": 4103, "provincia_id": 24 }
+  ]
+}

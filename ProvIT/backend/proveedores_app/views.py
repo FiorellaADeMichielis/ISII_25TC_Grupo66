@@ -245,3 +245,31 @@ class ProveedorReactivarView(APIView):
             return respuestaError(str(e.detail), status.HTTP_404_NOT_FOUND)
         except ValidationError as e:
             return respuestaError(e.detail)
+        
+# ---------------------------------------------------------------------------
+# Funciones auxiliares para Provincias y Localidades (uso en formularios de dirección)
+# ---------------------------------------------------------------------------
+class ProvinciaListaView(APIView):
+    """
+    GET /api/provincias/
+    Devuelve la lista completa de provincias.
+    """
+    def get(self, request):
+        data = services.verProvincias()
+        return respuestaExitosa(data=data)
+
+class LocalidadListaView(APIView):
+    """
+    GET /api/localidades/ o /api/localidades/?provincia_id={id}
+    Devuelve localidades, opcionalmente filtradas por provincia.
+    """
+    def get(self, request):
+        provincia_id = request.query_params.get("provincia_id")
+
+        if provincia_id and provincia_id.isdigit():
+            provincia_id = int(provincia_id)
+        else:
+            provincia_id = None
+            
+        data = services.verLocalidades(provincia_id=provincia_id)
+        return respuestaExitosa(data=data)

@@ -1,3 +1,9 @@
+export interface Direccion {
+  calle: string;
+  altura: number;
+  fk_localidad: number;
+}
+
 export interface Proveedor {
   id: number;
   nombre: string;
@@ -5,4 +11,5 @@ export interface Proveedor {
   email: string;
   telefono: string;
   estado: 'Activo' | 'Inactivo';
+  direcciones: Direccion[];
 }

@@ -19,11 +19,27 @@ Funciones con nombres alineado a Casos de Uso:
  
 from django.db import transaction
 from rest_framework.exceptions import NotFound, ValidationError
- 
 from .models import Proveedor
 from .serializers import ProveedorSerializer, ProveedorWriteSerializer
- 
- 
+from .models import Provincia, Localidad
+from .serializers import ProvinciaSerializer, LocalidadSerializer
+
+def verProvincias():
+    """Devuelve todas las provincias ordenadas alfabéticamente."""
+    provincias = Provincia.objects.all().order_by('nombre_provincia')
+    return ProvinciaSerializer(provincias, many=True).data
+
+def verLocalidades(provincia_id=None):
+    """
+    Devuelve las localidades. Si se pasa provincia_id, filtra por esa provincia.
+    """
+    if provincia_id is not None:
+        localidades = Localidad.objects.filter(fk_provincia=provincia_id)
+    else:
+        localidades = Localidad.objects.all()
+        
+    localidades = localidades.order_by('nombre_localidad')
+    return LocalidadSerializer(localidades, many=True).data
 # ---------------------------------------------------------------------------
 # Caso de Uso: Ver Proveedores (HU#3.x / RF1.1)
 # Actores: Operador / Administrador / Gerente

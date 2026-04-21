@@ -18,8 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse
 
+from proveedores_app.views import LocalidadListaView, ProvinciaListaView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('proveedores_app.urls')),  # ← era 'api.urls'
+    path('api/provincias/', ProvinciaListaView.as_view(), name='ver-provincias'),
+    path('api/localidades/', LocalidadListaView.as_view(), name='ver-localidades'),
     path('', lambda request: HttpResponse('API corriendo. Frontend en :5173')),
 ]
