@@ -80,12 +80,13 @@ WSGI_APPLICATION = 'provit_core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+#Host de Fio: "ALCACHOFIO\\SQLEXPRESS" | Host de Milo: DESKTOP-IDH7B7D\SQLEXPRESS
 
 DATABASES = {
     "default": {
         "ENGINE": "mssql",
         "NAME": "ProvitBD",                    # ← nombre de tu BD
-        "HOST": "ALCACHOFIO\\SQLEXPRESS", # ← nombre de tu servidor
+        "HOST": "DESKTOP-IDH7B7D\SQLEXPRESS", # ← nombre de tu servidor
         "PORT": "",                             # ← vacío, SQL Express usa puerto dinámico
         "USER": "",                             # ← vacío si usás Windows Authentication
         "PASSWORD": "",                         # ← vacío si usás Windows Authentication
@@ -95,6 +96,8 @@ DATABASES = {
         },
     }
 }
+
+
 
 
 # Password validation
