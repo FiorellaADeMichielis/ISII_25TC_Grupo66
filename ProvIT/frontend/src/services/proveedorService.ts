@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Proveedor, Direccion } from '../types/proveedor.types';
+import type { Proveedor } from '../types/proveedor.types';
 
 interface RespuestaBackend<T> {
   success: boolean;
@@ -84,17 +84,27 @@ export const proveedoresService = {
   },
 
   crear: async (data: Omit<Proveedor, 'id'>) => {
-    const payloadBackend = mapearABackend(data);
+  const payloadBackend = mapearABackend(data);
+  try {
     const response = await api.post<RespuestaBackend<ProveedorBackend>>('/proveedores/', payloadBackend);
     return mapearProveedor(response.data.data);
-  },
+  } catch (err: any) {
+    // Django devuelve { success: false, errores: { cuit: [...], ... } }
+    const erroresBackend = err?.response?.data?.errores;
+    throw erroresBackend ?? { general: 'Error al conectar con el servidor.' };
+  }
+},
 
-  actualizar: async (id: number, data: Partial<Proveedor>) => {
-    const payloadBackend = mapearABackend(data);
+actualizar: async (id: number, data: Partial<Proveedor>) => {
+  const payloadBackend = mapearABackend(data);
+  try {
     const response = await api.patch<RespuestaBackend<ProveedorBackend>>(`/proveedores/${id}/`, payloadBackend);
     return mapearProveedor(response.data.data);
-  },
-
+  } catch (err: any) {
+    const erroresBackend = err?.response?.data?.errores;
+    throw erroresBackend ?? { general: 'Error al conectar con el servidor.' };
+  }
+},
   eliminar: async (id: number) => {
     await api.delete(`/proveedores/${id}/`);
     return id;

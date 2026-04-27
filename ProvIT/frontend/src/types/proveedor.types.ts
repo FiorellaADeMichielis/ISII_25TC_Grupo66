@@ -14,3 +14,11 @@ export interface Proveedor {
   estado: 'Activo' | 'Inactivo';
   direcciones: Direccion[];
 }
+
+export interface ErroresBackend {
+  nombre_proveedor?: string[];
+  cuit?: string[];
+  correo_proveedor?: string[];
+  telefono?: string[];
+  general?: string;
+}

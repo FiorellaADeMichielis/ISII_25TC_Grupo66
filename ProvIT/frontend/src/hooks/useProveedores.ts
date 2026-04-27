@@ -21,7 +21,7 @@ export const useProveedores = () => {
   const [proveedorEditando, setProveedorEditando] = useState<Proveedor | null>(null);
 
   // === LÓGICA DE DATOS (API) ===
-  const cargarProveedores = useCallback(async (traerTodos: boolean = false) => {
+  const verProveedores = useCallback(async (traerTodos: boolean = false) => {
     setLoading(true);
     try {
       const data = await proveedoresService.obtenerTodos(traerTodos);
@@ -34,30 +34,28 @@ export const useProveedores = () => {
   }, []);
 
   useEffect(() => {
-    cargarProveedores(incluirInactivos); 
-  }, [cargarProveedores, incluirInactivos]);
+    verProveedores(incluirInactivos); 
+  }, [verProveedores, incluirInactivos]);
 
   const agregarProveedor = async (nuevoProv: Omit<Proveedor, 'id'>) => {
-    try {
-      const creado = await proveedoresService.crear(nuevoProv);
-      setProveedores((prev) => [creado, ...prev]); 
-      return true;
-    } catch (err) {
-      setError('No se pudo crear el proveedor');
-      return false;
-    }
-  };
+  try {
+    const creado = await proveedoresService.crear(nuevoProv);
+    setProveedores((prev) => [creado, ...prev]);
+    return { exito: true, errores: null };
+  } catch (errores: any) {
+    return { exito: false, errores };
+  }
+};
 
   const editarProveedor = async (id: number, datosActualizados: Partial<Proveedor>) => {
-    try {
-      const actualizado = await proveedoresService.actualizar(id, datosActualizados);
-      setProveedores((prev) => prev.map(p => p.id === id ? actualizado : p));
-      return true;
-    } catch (err) {
-      setError('No se pudo actualizar el proveedor');
-      return false;
-    }
-  };
+  try {
+    const actualizado = await proveedoresService.actualizar(id, datosActualizados);
+    setProveedores((prev) => prev.map(p => p.id === id ? actualizado : p));
+    return { exito: true, errores: null };
+  } catch (errores: any) {
+    return { exito: false, errores };
+  }
+};
 
   // === HANDLERS DE LA INTERFAZ ===
   const abrirModalNuevo = () => {
@@ -74,12 +72,12 @@ export const useProveedores = () => {
     setIsModalOpen(false);
   };
 
-  const handleGuardarDesdeModal = async (datos: Omit<Proveedor, "id">): Promise<boolean> => {
-    if (proveedorEditando) {
-      return await editarProveedor(proveedorEditando.id, datos);
-    }
-    return await agregarProveedor(datos);
-  };
+  const handleGuardarDesdeModal = async (datos: Omit<Proveedor, "id">) => {
+  if (proveedorEditando) {
+    return await editarProveedor(proveedorEditando.id, datos);
+  }
+  return await agregarProveedor(datos);
+};
 
   const handleCambiarEstado = async (prov: Proveedor): Promise<void> => {
     if (!puedeEliminar) {

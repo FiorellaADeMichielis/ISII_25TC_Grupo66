@@ -99,7 +99,6 @@ def verProveedor(id_proveedor: int) -> dict:
 # Caso de Uso: Agregar Proveedor  (HU#3.1 / RF1.1)
 # Actor: Operador
 # ---------------------------------------------------------------------------
- 
 @transaction.atomic
 def agregarProveedor(data: dict) -> dict:
     """
