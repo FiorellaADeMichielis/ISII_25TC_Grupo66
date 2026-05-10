@@ -11,8 +11,16 @@ export interface Usuario {
   email: string;
   rol: RolId; 
 }
-
 export interface AuthResponse {
   token: string;
   user: Usuario;
+}
+
+// NUEVO: registro
+export interface RegisterData {
+  nombre: string;
+  apellido: string;
+  dni: number;
+  email: string;
+  password: string;
 }

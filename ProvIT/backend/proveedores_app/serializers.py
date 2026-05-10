@@ -5,20 +5,44 @@ Descripción: Serializers DRF para el CRUD de Proveedores.
              - ProveedorWriteSerializer: valida y crea/edita proveedor + direcciones (escritura).
              Validaciones implementadas según HU#3.1 (CUIT único) y RF1.1/RF1.2.
 """
-
 from rest_framework import serializers
-from .models import Proveedor, Direccion, Localidad, Provincia
+from .models import Proveedor, Direccion, Localidad, Provincia, Usuario, Rol
+from django.contrib.auth.hashers import make_password
 
+class UsuarioRegistroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ['nombre_usuario', 'apellido_usuario', 'dni', 'correo_usuario', 'contrasena']
+        extra_kwargs = {
+            'contrasena': {'write_only': True} # Evita que la contraseña se devuelva en el JSON de respuesta
+        }
+    def create(self, validated_data):
+        # Asigna un rol por defecto si no viene en el request
+        try:
+            rol_por_defecto = Rol.objects.get(pk=1) 
+        except Rol.DoesNotExist:
+            raise serializers.ValidationError("El rol por defecto no existe en la base de datos.")
+        # Hasheamos la contraseña (Seguridad Crítica)
+        contrasena_hasheada = make_password(validated_data['contrasena'])
+        # Creamos el usuario
+        usuario = Usuario.objects.create(
+            nombre_usuario=validated_data['nombre_usuario'],
+            apellido_usuario=validated_data['apellido_usuario'],
+            dni=validated_data['dni'],
+            correo_usuario=validated_data['correo_usuario'],
+            contrasena=contrasena_hasheada,
+            fk_rol=rol_por_defecto,
+            estado=True
+        )
+        return usuario
 
 # ---------------------------------------------------------------------------
 # Serializers de catálogos (sólo lectura, para los dropdowns del frontend)
 # ---------------------------------------------------------------------------
-
 class ProvinciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Provincia
         fields = ["id_provincia", "nombre_provincia"]
-
 
 class LocalidadSerializer(serializers.ModelSerializer):
     provincia = ProvinciaSerializer(source="fk_provincia", read_only=True)
@@ -26,22 +50,17 @@ class LocalidadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Localidad
         fields = ["id_localidad", "codigo_postal", "nombre_localidad", "provincia"]
-
-
 # ---------------------------------------------------------------------------
 # Serializers de Direccion
 # ---------------------------------------------------------------------------
-
 class DireccionSerializer(serializers.ModelSerializer):
     """
     Usado para leer direcciones con detalle de localidad/provincia.
     """
     localidad = LocalidadSerializer(source="fk_localidad", read_only=True)
-
     class Meta:
         model = Direccion
         fields = ["id_direccion", "calle", "altura", "localidad"]
-
 
 class DireccionWriteSerializer(serializers.ModelSerializer):
     """
@@ -55,11 +74,9 @@ class DireccionWriteSerializer(serializers.ModelSerializer):
             "id_direccion": {"required": False},    # Opcional en creación
         }
 
-
 # ---------------------------------------------------------------------------
 # Serializer de Proveedor — Lectura (GET list / GET detail)
 # ---------------------------------------------------------------------------
-
 class ProveedorSerializer(serializers.ModelSerializer):
     """
     Representación completa del proveedor, con direcciones anidadas y detalladas.
@@ -80,11 +97,9 @@ class ProveedorSerializer(serializers.ModelSerializer):
             "direcciones",
         ]
 
-
 # ---------------------------------------------------------------------------
 # Serializer de Proveedor — Escritura (POST / PUT / PATCH)
 # ---------------------------------------------------------------------------
-
 class ProveedorWriteSerializer(serializers.ModelSerializer):
     """
     Crea o edita un proveedor junto con sus direcciones.
@@ -102,7 +117,6 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
     }
     """
     direcciones = DireccionWriteSerializer(many=True, required=False)
-
     class Meta:
         model = Proveedor
         fields = [
@@ -116,7 +130,6 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
     # ------------------------------------------------------------------
     # Validaciones de negocio
     # ------------------------------------------------------------------
-
     def validate_cuit(self, value):
         """
         RF1.1 / HU#3.1: El CUIT debe ser único.
@@ -139,9 +152,7 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "El proveedor ya existe. El CUIT ingresado ya está registrado en el sistema."
             )
-
         return value
-
     def validate_nombre_proveedor(self, value):
         """Nombre no puede ser vacío ni sólo espacios."""
         if not value or not value.strip():
@@ -153,16 +164,14 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
     # ------------------------------------------------------------------
     # Creación con direcciones anidadas
     # ------------------------------------------------------------------
-
     def create(self, validated_data):
         """
         Crea el proveedor y sus direcciones en una sola transacción.
         """
-        # 1. Sacamos las direcciones validadas para evitar conflictos
+        # Saca las direcciones validadas para evitar conflictos
         validated_data.pop("direcciones", [])
         proveedor = Proveedor.objects.create(**validated_data)
-
-        # 2. Leemos directamente del payload original (initial_data)
+        # Lee directamente del payload original (initial_data)
         direcciones_raw = self.initial_data.get("direcciones", [])
 
         for dir_data in direcciones_raw:
@@ -170,7 +179,7 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
                 fk_proveedor=proveedor,
                 calle=dir_data.get("calle"),
                 altura=dir_data.get("altura"),
-                fk_localidad_id=dir_data.get("fk_localidad") # Usamos _id para asignar directamente el número
+                fk_localidad_id=dir_data.get("fk_localidad") # Usa _id para asignar directamente el número
             )
 
         return proveedor
@@ -184,18 +193,14 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
         Actualiza los campos del proveedor.
         Para las direcciones usa estrategia "reemplazar".
         """
-        # 1. Evita que DRF intente guardar las direcciones anidadas
+        # Evita que DRF intente guardar las direcciones anidadas
         validated_data.pop("direcciones", None)
-
-        # 2. Actualiza campos del proveedor
+        # Actualiza campos del proveedor
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-
-        # 3. Lee del payload crudo para evadir el filtrado del partial=True
         direcciones_raw = self.initial_data.get("direcciones", None)
-
-        # 4. Si se envían direcciones, reemplaza las existentes
+        # Si se envían direcciones, reemplaza las existentes
         if direcciones_raw is not None:
             instance.direcciones.all().delete()
             for dir_data in direcciones_raw:
@@ -205,5 +210,4 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
                     altura=dir_data.get("altura"),
                     fk_localidad_id=dir_data.get("fk_localidad") # Usa _id para asignar directamente el número
                 )
-
         return instance

@@ -1,30 +1,30 @@
 """
-Descripción: Definición de rutas de la API de Proveedores.
-             Nomenclatura de vistas alineada al documento de IS.
-
-Tabla de endpoints:
-┌──────────────────────────────────────────────┬────────┬─────────────────────────────────────────┐
-│ URL                                          │ Método │ Función / Caso de Uso                   │
-├──────────────────────────────────────────────┼────────┼─────────────────────────────────────────┤
-│ /api/proveedores/                            │ GET    │ verProveedores (activos)                │
-│ /api/proveedores/?todos=true                 │ GET    │ verProveedores (todos)                  │
-│ /api/proveedores/                            │ POST   │ agregarProveedor                        │
-│ /api/proveedores/<int:pk>/                   │ GET    │ verProveedor (detalle)                  │
-│ /api/proveedores/<int:pk>/                   │ PUT    │ editarProveedor (completo)              │
-│ /api/proveedores/<int:pk>/                   │ PATCH  │ editarProveedor (parcial)               │
-│ /api/proveedores/<int:pk>/                   │ DELETE │ eliminarProveedor (baja lógica)         │
-│ /api/proveedores/<int:pk>/reactivar/         │ PATCH  │ reactivarProveedor (Admin)              │
-└──────────────────────────────────────────────┴────────┴─────────────────────────────────────────┘
+Descripción: Definición de rutas de la API.
 """
 
 from django.urls import path
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from .views import (
     ProveedorListaView,
     ProveedorDetalleView,
     ProveedorReactivarView,
+    UsuarioRegistroView, 
 )
 
 urlpatterns = [
+    # ==========================================
+    # SEGURIDAD Y AUTENTICACIÓN
+    # ==========================================
+    path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("registro/", UsuarioRegistroView.as_view(), name="usuario_registro"),
+
+    # ==========================================
+    # MÓDULO PROVEEDORES
+    # ==========================================
     # verProveedores + agregarProveedor
     path(
         "proveedores/",

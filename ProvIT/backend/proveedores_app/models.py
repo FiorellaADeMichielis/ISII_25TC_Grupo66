@@ -1,6 +1,5 @@
 from django.db import models
 """
-
 Descripción: Modelos Django que mapean TODAS las tablas del DER de ProvitBD.
              Los nombres de tablas y columnas coinciden exactamente con el
              script SQL del proyecto que exportamos desde el DER en ERD PLUS.
@@ -19,11 +18,9 @@ Tablas:
     - Detalle_Pedido
     - Proveedor_Producto
 """
-
 # =============================================================================
 # ROL
 # =============================================================================
-
 class Rol(models.Model):
     """
     Tabla: Rol
@@ -42,15 +39,12 @@ class Rol(models.Model):
         db_table = "Rol"
         verbose_name = "Rol"
         verbose_name_plural = "Roles"
-
     def __str__(self):
         return self.nombre
-
 
 # =============================================================================
 # USUARIO
 # =============================================================================
-
 class Usuario(models.Model):
     """
     Tabla: Usuario
@@ -102,12 +96,10 @@ class Usuario(models.Model):
 
     def __str__(self):
         return f"{self.nombre_usuario} {self.apellido_usuario}"
-
-
+    
 # =============================================================================
 # PROVINCIA
 # =============================================================================
-
 class Provincia(models.Model):
     """
     Tabla: Provincia
@@ -121,7 +113,6 @@ class Provincia(models.Model):
         max_length=100,
         db_column="nombre_provincia"
     )
-
     class Meta:
         db_table = "Provincia"
         verbose_name = "Provincia"
@@ -130,11 +121,9 @@ class Provincia(models.Model):
     def __str__(self):
         return self.nombre_provincia
 
-
 # =============================================================================
 # LOCALIDAD
 # =============================================================================
-
 class Localidad(models.Model):
     """
     Tabla: Localidad
@@ -166,11 +155,9 @@ class Localidad(models.Model):
     def __str__(self):
         return f"{self.nombre_localidad} ({self.codigo_postal})"
 
-
 # =============================================================================
 # PROVEEDOR
 # =============================================================================
-
 class Proveedor(models.Model):
     """
     Tabla: Proveedor
@@ -221,11 +208,9 @@ class Proveedor(models.Model):
     def __str__(self):
         return f"{self.nombre_proveedor} (CUIT: {self.cuit})"
 
-
 # =============================================================================
 # DIRECCION
 # =============================================================================
-
 class Direccion(models.Model):
     """
     Tabla: Direccion
@@ -263,11 +248,9 @@ class Direccion(models.Model):
     def __str__(self):
         return f"{self.calle} {self.altura}"
 
-
 # =============================================================================
 # PEDIDO
 # =============================================================================
-
 class Pedido(models.Model):
     """
     Tabla: Pedido
@@ -306,20 +289,16 @@ class Pedido(models.Model):
         db_column="ID_proveedor",
         related_name="pedidos"
     )
-
     class Meta:
         db_table = "Pedido"
         verbose_name = "Pedido"
         verbose_name_plural = "Pedidos"
-
     def __str__(self):
         return f"Pedido #{self.id_pedido} - {self.estado_pedido}"
-
 
 # =============================================================================
 # FACTURA
 # =============================================================================
-
 class Factura(models.Model):
     """
     Tabla: Factura
@@ -371,20 +350,16 @@ class Factura(models.Model):
         db_column="ID_proveedor",
         related_name="facturas"
     )
-
     class Meta:
         db_table = "Factura"
         verbose_name = "Factura"
         verbose_name_plural = "Facturas"
-
     def __str__(self):
         return f"Factura #{self.nro_factura}"
-
 
 # =============================================================================
 # CATEGORIA
 # =============================================================================
-
 class Categoria(models.Model):
     """
     Tabla: Categoria
@@ -407,11 +382,9 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre_categoria
 
-
 # =============================================================================
 # PRODUCTO
 # =============================================================================
-
 class Producto(models.Model):
     """
     Tabla: Producto
@@ -441,11 +414,9 @@ class Producto(models.Model):
     def __str__(self):
         return self.nombre_producto
 
-
 # =============================================================================
 # DETALLE_PEDIDO
 # =============================================================================
-
 class DetallePedido(models.Model):
     """
     Tabla: Detalle_Pedido. Es la intermedia entre Pedido y Producto.
@@ -473,7 +444,6 @@ class DetallePedido(models.Model):
         db_column="ID_producto",
         related_name="detalles_pedido"
     )
-
     class Meta:
         db_table = "Detalle_Pedido"
         # Clave primaria compuesta (ID_pedido, ID_producto)
@@ -484,11 +454,9 @@ class DetallePedido(models.Model):
     def __str__(self):
         return f"Pedido #{self.fk_pedido_id} - Producto #{self.fk_producto_id}"
 
-
 # =============================================================================
 # PROVEEDOR_PRODUCTO
 # =============================================================================
-
 class ProveedorProducto(models.Model):
     """
     Tabla: Proveedor_Producto. Intermedia entre Proveedor y Producto.
@@ -523,13 +491,11 @@ class ProveedorProducto(models.Model):
         db_column="ID_Producto",
         related_name="proveedores_producto"
     )
-
     class Meta:
         db_table = "Proveedor_Producto"
         # Clave primaria compuesta (ID_proveedor, ID_Producto)
         unique_together = [["fk_proveedor", "fk_producto"]]
         verbose_name = "Proveedor - Producto"
         verbose_name_plural = "Proveedores - Productos"
-
     def __str__(self):
         return f"{self.fk_proveedor} → {self.fk_producto} (${self.precio_actual})"
