@@ -47,10 +47,9 @@ export const registerService = async (data: RegisterData): Promise<boolean> => {
     };
 
     // Comunicación con el Controlador de Django
-    // Asumimos que Django tiene un endpoint '/registro/' o '/usuarios/' configurado.
     await api.post('/registro/', payloadBackend);
 
-    // Si la petición es exitosa (201 Created), devolvemos true
+    // Si la petición es exitosa (201 Created), devuelve true
     return true;
 
   } catch (error: any) {

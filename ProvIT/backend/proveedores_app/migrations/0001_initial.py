@@ -13,6 +13,37 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='Rol',
+            fields=[
+                ('id_rol', models.AutoField(primary_key=True, serialize=False)),
+                ('nombre', models.CharField(max_length=50, unique=True)),       
+            ],
+            options={
+                'verbose_name': 'Rol',
+                'verbose_name_plural': 'Roles',
+                'db_table': 'Rol',
+            },
+        ),
+        migrations.CreateModel(
+            name='Usuario',
+            fields=[
+                ('id_usuario', models.AutoField(primary_key=True, serialize=False)),
+                ('nombre_usuario', models.CharField(max_length=100)),
+                ('apellido_usuario', models.CharField(max_length=100)),
+                ('dni', models.IntegerField(unique=True)),
+                ('correo_usuario', models.EmailField(max_length=254, unique=True)),
+                ('contrasena', models.CharField(max_length=128)),
+                ('fk_rol', models.ForeignKey(db_column='fk_Rol', on_delete=django.db.models.deletion.PROTECT, related_name='usuarios', to='proveedores_app.rol')),
+                ('estado', models.BooleanField(default=True)),
+            ],
+            options={
+                'verbose_name': 'Usuario',
+                'verbose_name_plural': 'Usuarios',
+                'db_table': 'Usuario',
+            },
+        ),
+        
+        migrations.CreateModel(
             name='Localidad',
             fields=[
                 ('id_localidad', models.AutoField(primary_key=True, serialize=False)),

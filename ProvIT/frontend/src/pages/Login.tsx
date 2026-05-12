@@ -64,6 +64,9 @@ export function Login() {
           </button>
 
         </form>
+        <p className="text-center text-sm text-slate-500 mt-6">
+          ¿Todavía no tenés una cuenta? <a href="/registro " className="text-blue-600 font-medium hover:underline">Registrate</a>
+        </p>
       </div>
     </div>
   );

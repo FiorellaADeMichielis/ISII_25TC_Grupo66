@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/router/protectedRoute";
 
 import { Login }         from "./pages/Login";
+import { Registro }      from "./pages/Registro";
 import { Dashboard }     from "./components/layout/Dashboard";
 import { Tableros }      from "./pages/Tableros";
 import { Proveedores }   from "./pages/Proveedores";
@@ -19,25 +20,26 @@ export default function App() {
       <BrowserRouter>
         <Routes>
 
-          {/* Pública */}
+          {/* Rutas Públicas */}
           <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} /> 
 
-          {/* Verifica sesión activa */}
+          {/* Verifica sesión activa para cualquier rol */}
           <Route element={<ProtectedRoute allowedRoles={TODOS} />}>
 
             {/* Dashboard como layout con path raíz */}
             <Route path="/" element={<Dashboard />}>
 
-              {/* / → /proveedores */}
+              {/* / → Redirige a /proveedores por defecto */}
               <Route index element={<Navigate to="/proveedores" replace />} />
 
-              {/* Todos los roles */}
+              {/* Módulos accesibles por todos los roles */}
               <Route path="tableros"    element={<Tableros />} />
               <Route path="proveedores" element={<Proveedores />} />
               <Route path="facturas"    element={<Facturas />} />
 
               {/* Administrador y Gerente */}
-              <Route element={<ProtectedRoute allowedRoles={[ROLES.OPERADOR, ROLES.ADMINISTRADOR, ROLES.GERENTE]} />}>
+              <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMINISTRADOR, ROLES.GERENTE]} />}>
                 <Route path="configuracion" element={<Configuracion />} />
               </Route>
 
@@ -49,7 +51,7 @@ export default function App() {
             </Route>
           </Route>
 
-          {/* Cualquier ruta desconocida */}
+          {/* Fallback: Cualquier ruta desconocida manda al login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
 
         </Routes>
