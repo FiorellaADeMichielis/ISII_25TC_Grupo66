@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -87,7 +87,7 @@ DATABASES = {
     "default": {
         "ENGINE": "mssql",
         "NAME": "ProvitBD",                    # ← nombre de tu BD
-        "HOST": "ALCACHOFIO\\SQLEXPRESS", # ← nombre de tu servidor
+        "HOST": "DESKTOP-IDH7B7D\SQLEXPRESS", # ← nombre de tu servidor
         "PORT": "",                             # ← vacío, SQL Express usa puerto dinámico
         "USER": "",                             # ← vacío si usás Windows Authentication
         "PASSWORD": "",                         # ← vacío si usás Windows Authentication
@@ -98,7 +98,10 @@ DATABASES = {
     }
 }
 
-
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=8),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
 
 
 # Password validation

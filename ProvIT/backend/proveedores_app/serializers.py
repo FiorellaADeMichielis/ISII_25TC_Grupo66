@@ -5,9 +5,13 @@ Descripción: Serializers DRF para el CRUD de Proveedores.
              - ProveedorWriteSerializer: valida y crea/edita proveedor + direcciones (escritura).
              Validaciones implementadas según HU#3.1 (CUIT único) y RF1.1/RF1.2.
 """
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.hashers import check_password
 from rest_framework import serializers
 from .models import Proveedor, Direccion, Localidad, Provincia, Usuario, Rol
 from django.contrib.auth.hashers import make_password
+
 
 class UsuarioRegistroSerializer(serializers.ModelSerializer):
     class Meta:
@@ -211,3 +215,58 @@ class ProveedorWriteSerializer(serializers.ModelSerializer):
                     fk_localidad_id=dir_data.get("fk_localidad") # Usa _id para asignar directamente el número
                 )
         return instance
+
+    # -------------------------------------------------------------
+    # AUTENTICACIÓN JWT PERSONALIZADA
+    # Permite login con correo_usuario en lugar de username desde la BD
+    # -------------------------------------------------------------
+class ProvITTokenSerializer(TokenObtainPairSerializer):
+    """
+    Serializer personalizado que autentica contra el modelo Usuario
+    propio de ProvIT usando correo_usuario + contrasena.
+    Reemplaza el comportamiento por defecto de SimpleJWT que busca
+    en auth_user de Django.
+    """
+    # Reemplazamos los campos por defecto (username/password)
+    username_field = 'username'
+
+    username = serializers.EmailField()    # ← acepta "username" del frontend
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        correo   = attrs.get('username')   # ← leer como "username"
+        password = attrs.get('password')
+
+        try:
+            usuario = Usuario.objects.select_related('fk_rol').get(
+                correo_usuario=correo      # ← buscar por correo_usuario en la BD
+            )
+        except Usuario.DoesNotExist:
+            raise serializers.ValidationError(
+                {"detail": "Credenciales inválidas. Por favor, verifica tus datos."}
+            )
+
+        # Verificar contraseña hasheada con check_password de Django
+        if not check_password(password, usuario.contrasena):
+            raise serializers.ValidationError(
+                {"detail": "Credenciales inválidas. Por favor, verifica tus datos."}
+            )
+
+        # Verificar que el usuario esté activo
+        if not usuario.estado:
+            raise serializers.ValidationError(
+                {"detail": "El usuario se encuentra inactivo. Contactá al administrador."}
+            )
+
+        # Generar el token JWT manualmente con datos del usuario ProvIT
+        refresh = RefreshToken()
+        refresh['user_id']  = usuario.id_usuario
+        refresh['nombre']   = usuario.nombre_usuario
+        refresh['apellido'] = usuario.apellido_usuario
+        refresh['email']    = usuario.correo_usuario
+        refresh['rol']      = usuario.fk_rol.id_rol
+
+        return {
+            'access':  str(refresh.access_token),
+            'refresh': str(refresh),
+        }

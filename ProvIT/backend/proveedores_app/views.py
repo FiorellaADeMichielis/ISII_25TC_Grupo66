@@ -33,6 +33,8 @@ from . import services
 from .models import Usuario
 from .serializers import UsuarioRegistroSerializer
 
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import ProvITTokenSerializer
 # ===========================================================================
 # 1. PERMISOS PERSONALIZADOS (Role-Based Access Control)
 # ===========================================================================
@@ -65,6 +67,14 @@ def respuestaError(detalle, codigo: int = status.HTTP_400_BAD_REQUEST):
 # ===========================================================================
 # 3. CONTROLADOR DE IDENTIDAD (Registro)
 # ===========================================================================
+class ProvITLoginView(TokenObtainPairView):
+    """
+    POST /api/login/
+    Login personalizado que autentica contra el modelo Usuario de ProvIT.
+    """
+    serializer_class  = ProvITTokenSerializer
+    permission_classes = [AllowAny]
+
 class UsuarioRegistroView(generics.CreateAPIView):
     """
     POST /api/registro/

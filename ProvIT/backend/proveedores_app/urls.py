@@ -12,13 +12,14 @@ from .views import (
     ProveedorDetalleView,
     ProveedorReactivarView,
     UsuarioRegistroView, 
+    ProvITLoginView
 )
 
 urlpatterns = [
     # ==========================================
     # SEGURIDAD Y AUTENTICACIÓN
     # ==========================================
-    path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("login/", ProvITLoginView.as_view(), name="token_obtain_pair"),
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("registro/", UsuarioRegistroView.as_view(), name="usuario_registro"),
 
