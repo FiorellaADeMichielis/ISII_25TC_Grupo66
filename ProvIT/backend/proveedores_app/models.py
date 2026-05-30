@@ -88,6 +88,21 @@ class Usuario(models.Model):
         db_column="ID_Rol",
         related_name="usuarios"
     )
+# Le dice a Django cuál es el campo para iniciar sesión
+    USERNAME_FIELD = 'correo_usuario'
+    REQUIRED_FIELDS = []
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    @property
+    def is_active(self):
+        return self.estado  
 
     class Meta:
         db_table = "Usuario"

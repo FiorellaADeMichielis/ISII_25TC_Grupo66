@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance } from 'axios';
-//se aplica el patron singleton para evitar multiples instancias de axios y lograr centralizar la configuración
+
+// Se aplica el patrón singleton para evitar múltiples instancias de axios y lograr centralizar la configuración
 class ApiClient {
   private static instance: ApiClient;
   public axiosInstance: AxiosInstance;
@@ -21,7 +22,7 @@ class ApiClient {
     // Se ejecuta ANTES de que la petición salga hacia Django
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        // Busca el token donde estaba guardada
+        // Busca el token donde estaba guardado
         const token = localStorage.getItem('access_token');
         
         // Si hay token, se lo inyecta a la cabecera de autorización
@@ -43,14 +44,27 @@ class ApiClient {
         return response;
       },
       (error) => {
-        // Si Django devuelve un 401, el token expiró o es inválido
-        if (error.response && error.response.status === 401) {
+        // 1. Captura la URL a la que el frontend intentó acceder
+        const urlPeticion = error.config?.url || '';
+
+        // 2. Verifica si la petición iba dirigida a la autenticación (login o token)
+        const esRutaAutenticacion = urlPeticion.includes('token') || urlPeticion.includes('login');
+        
+        // 3. Verifica en qué pantalla física está parado el usuario
+        const estaEnPantallaLogin = window.location.pathname === '/login';
+
+        if (error.response && error.response.status === 401 && !esRutaAutenticacion) {
           console.warn('Sesión expirada o no autorizada.');
           
-          //borra los datos de sesión y mandar al usuario al Login
+          // Borro TODO rastro de la sesión
           localStorage.removeItem('access_token');
-          //forzar la redirección:
-          window.location.href = '/login';
+          localStorage.removeItem('token'); 
+          localStorage.removeItem('user'); 
+          
+          // Manda al usuario al Login (solo si no está ya ahí)
+          if (!estaEnPantallaLogin) {
+            window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }

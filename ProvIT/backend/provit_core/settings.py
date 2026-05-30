@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "corsheaders",         
     'rest_framework',
     'rest_framework_simplejwt',
-    "proveedores_app",
+    "proveedores_app.apps.ProveedoresAppConfig",
 ]
 
 MIDDLEWARE = [
@@ -86,21 +86,30 @@ WSGI_APPLICATION = 'provit_core.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "mssql",
-        "NAME": "ProvitBD",                    # ← nombre de tu BD
-        "HOST": "DESKTOP-IDH7B7D\SQLEXPRESS", # ← nombre de tu servidor
+        "NAME": "ProvitBD",                    # 
+        "HOST": "ALCACHOFIO\\SQLEXPRESS", # ← nombre del servidor
         "PORT": "",                             # ← vacío, SQL Express usa puerto dinámico
-        "USER": "",                             # ← vacío si usás Windows Authentication
-        "PASSWORD": "",                         # ← vacío si usás Windows Authentication
+        "USER": "",                             
+        "PASSWORD": "",                         
         "OPTIONS": {
             "driver": "ODBC Driver 17 for SQL Server",
             "trusted_connection": "yes",        # ← Windows Authentication
         },
     }
 }
+AUTH_USER_MODEL = 'proveedores_app.Usuario'
+# Configuración global de Django REST Framework
+REST_FRAMEWORK = {
+    #Le enseña a Django a leer tu JWT en lugar de cookies
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME':  timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'USER_ID_FIELD': 'id_usuario',
 }
 
 
