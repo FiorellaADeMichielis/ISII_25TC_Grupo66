@@ -6,9 +6,9 @@ import { ProtectedRoute } from "./components/router/protectedRoute";
 import { Login }         from "./pages/Login";
 import { Registro }      from "./pages/Registro";
 import { Dashboard }     from "./components/layout/Dashboard";
-import { Tableros }      from "./pages/Tableros";
+import { Estadisticas }      from "./pages/Estadisticas";
 import { Proveedores }   from "./pages/Proveedores";
-import { Facturas }      from "./pages/Facturas";
+import { Pedidos }      from "./pages/Pedidos";
 import { Usuarios }      from "./pages/Usuarios";
 import { Configuracion } from "./pages/Configuracion";
 
@@ -34,9 +34,9 @@ export default function App() {
               <Route index element={<Navigate to="/proveedores" replace />} />
 
               {/* Módulos accesibles por todos los roles */}
-              <Route path="tableros"    element={<Tableros />} />
+              <Route path="estadisticas"    element={<Estadisticas />} />
               <Route path="proveedores" element={<Proveedores />} />
-              <Route path="facturas"    element={<Facturas />} />
+              <Route path="pedidos"    element={<Pedidos />} />
 
               {/* Administrador y Gerente */}
               <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMINISTRADOR, ROLES.GERENTE]} />}>

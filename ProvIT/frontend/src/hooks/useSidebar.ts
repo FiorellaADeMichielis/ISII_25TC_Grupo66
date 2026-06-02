@@ -4,9 +4,9 @@ import type { MenuItem, RolId } from "../types/layout.types";
 import { ROLES } from "../types/layout.types";
 
 const MENU_ITEMS: MenuItem[] = [
-  { name: "Tableros",      path: "/tableros",      iconName: "tableros",      allowedRoles: [ROLES.ADMINISTRADOR, ROLES.GERENTE] },
+  { name: "Estadisticas",      path: "/estadisticas",      iconName: "estadisticas",      allowedRoles: [ROLES.ADMINISTRADOR, ROLES.GERENTE] },
   { name: "Proveedores",   path: "/proveedores",   iconName: "proveedores",   allowedRoles: [ROLES.OPERADOR, ROLES.ADMINISTRADOR, ROLES.GERENTE] },
-  { name: "Facturas",      path: "/facturas",      iconName: "facturas",      allowedRoles: [ROLES.OPERADOR, ROLES.ADMINISTRADOR, ROLES.GERENTE] },
+  { name: "Pedidos",      path: "/pedidos",      iconName: "pedidos",      allowedRoles: [ROLES.OPERADOR, ROLES.ADMINISTRADOR, ROLES.GERENTE] },
   { name: "Usuarios",      path: "/usuarios",      iconName: "usuarios",      allowedRoles: [ROLES.GERENTE] },
   { name: "Configuración", path: "/configuracion", iconName: "configuracion", allowedRoles: [ROLES.OPERADOR, ROLES.ADMINISTRADOR, ROLES.GERENTE] },
 ];

@@ -7,9 +7,9 @@ const SIZE = 20;
 
 function NavIcon({ iconName }: { iconName: MenuItem["iconName"] }) {
   switch (iconName) {
-    case "tableros":      return <LayoutDashboard size={SIZE} />;
+    case "estadisticas":      return <LayoutDashboard size={SIZE} />;
     case "proveedores":   return <Users size={SIZE} />;
-    case "facturas":      return <FileText size={SIZE} />;
+    case "pedidos":      return <FileText size={SIZE} />;
     case "usuarios":      return <UserCog size={SIZE} />;
     case "configuracion": return <Settings size={SIZE} />;
     default:              return <Settings size={SIZE} />;

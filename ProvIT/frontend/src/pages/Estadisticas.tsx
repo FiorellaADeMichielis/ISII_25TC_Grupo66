@@ -8,7 +8,7 @@ import { GraficoLineas } from '../components/UI/Graficos/lineas';
 import { ModalFiltrosAnalisis } from '../components/organismos/ModalFiltrosAnalisis'; // Modal para seleccionar filtros de análisis
 import type { FiltrosAnalisis } from '../types/analisis.types';
 
-export const Tableros = () => {
+export const Estadisticas = () => {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [mostrarAnalisis, setMostrarAnalisis] = useState(false);
   const [filtrosActivos, setFiltrosActivos] = useState<FiltrosAnalisis | null>(null);

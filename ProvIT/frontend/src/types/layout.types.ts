@@ -12,6 +12,6 @@ export const ROLES = {
 export interface MenuItem {
   name: string;
   path: string;
-  iconName: "tableros" | "proveedores" | "facturas" | "usuarios" | "configuracion";
+  iconName: "estadisticas" | "proveedores" | "pedidos" | "usuarios" | "configuracion";
   allowedRoles: RolId[];
 }
