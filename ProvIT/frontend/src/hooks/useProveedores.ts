@@ -38,24 +38,24 @@ export const useProveedores = () => {
   }, [verProveedores, incluirInactivos]);
 
   const agregarProveedor = async (nuevoProv: Omit<Proveedor, 'id'>) => {
-  try {
-    const creado = await proveedoresService.crear(nuevoProv);
-    setProveedores((prev) => [creado, ...prev]);
-    return { exito: true, errores: null };
-  } catch (errores: any) {
-    return { exito: false, errores };
-  }
-};
+    try {
+      const creado = await proveedoresService.crear(nuevoProv);
+      setProveedores((prev) => [creado, ...prev]);
+      return { exito: true, errores: null };
+    } catch (errores: any) {
+      return { exito: false, errores };
+    }
+  };
 
   const editarProveedor = async (id: number, datosActualizados: Partial<Proveedor>) => {
-  try {
-    const actualizado = await proveedoresService.actualizar(id, datosActualizados);
-    setProveedores((prev) => prev.map(p => p.id === id ? actualizado : p));
-    return { exito: true, errores: null };
-  } catch (errores: any) {
-    return { exito: false, errores };
-  }
-};
+    try {
+      const actualizado = await proveedoresService.actualizar(id, datosActualizados);
+      setProveedores((prev) => prev.map(p => p.id === id ? actualizado : p));
+      return { exito: true, errores: null };
+    } catch (errores: any) {
+      return { exito: false, errores };
+    }
+  };
 
   // === HANDLERS DE LA INTERFAZ ===
   const abrirModalNuevo = () => {
@@ -72,12 +72,43 @@ export const useProveedores = () => {
     setIsModalOpen(false);
   };
 
+  // ==========================================================
+  // ACÁ OCURRE LA MAGIA DEL RBAC Y EL CAMBIO DE ESTADO
+  // ==========================================================
   const handleGuardarDesdeModal = async (datos: Omit<Proveedor, "id">) => {
-  if (proveedorEditando) {
-    return await editarProveedor(proveedorEditando.id, datos);
-  }
-  return await agregarProveedor(datos);
-};
+    if (proveedorEditando) {
+      
+      // 1. Intentamos actualizar los datos estándar (Nombre, CUIT, etc)
+      const resultadoEdicion = await editarProveedor(proveedorEditando.id, datos);
+      
+      // Si el backend rebotó la edición (ej. CUIT duplicado), frenamos acá
+      if (!resultadoEdicion.exito) return resultadoEdicion;
+
+      // 2. Evaluamos si el Administrador/Gerente modificó el select de "Estado"
+      if (proveedorEditando.estado !== datos.estado) {
+        try {
+          if (datos.estado === 'Inactivo') {
+            await proveedoresService.eliminar(proveedorEditando.id);
+          } else {
+            await proveedoresService.reactivar(proveedorEditando.id);
+          }
+          
+          // Reflejamos el cambio visual en la tabla sin recargar toda la API
+          setProveedores((prev) => prev.map(p => 
+            p.id === proveedorEditando.id ? { ...p, estado: datos.estado } : p
+          ));
+        } catch (errorEstado: any) {
+          // Si Django rechaza el cambio de estado (ej. 403 Forbidden), pasamos el error al Modal
+          return { exito: false, errores: errorEstado };
+        }
+      }
+
+      return { exito: true, errores: null };
+    }
+    
+    // Si no había proveedor en edición, es uno nuevo.
+    return await agregarProveedor(datos);
+  };
 
   const handleCambiarEstado = async (prov: Proveedor): Promise<void> => {
     if (!puedeEliminar) {
@@ -90,11 +121,9 @@ export const useProveedores = () => {
     if (window.confirm(`¿Estás seguro de que deseás ${accion} a ${prov.nombre}?`)) {
       try {
         if (prov.estado === 'Activo') {
-          // Llama al endpoint DELETE /api/proveedores/{id}/
           await proveedoresService.eliminar(prov.id);
           setProveedores((prev) => prev.map(p => p.id === prov.id ? { ...p, estado: 'Inactivo' } : p));
         } else {
-          // Llama al endpoint PATCH /api/proveedores/{id}/reactivar/
           await proveedoresService.reactivar(prov.id);
           setProveedores((prev) => prev.map(p => p.id === prov.id ? { ...p, estado: 'Activo' } : p));
         }
@@ -104,7 +133,6 @@ export const useProveedores = () => {
     }
   };
 
-  // Exponemos todo a la vista de Proveedores.tsx
   return {
     proveedores,
     loading,

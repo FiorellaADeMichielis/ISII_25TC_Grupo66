@@ -1,5 +1,5 @@
 import { Plus, Edit2, Trash2, Building2 } from "lucide-react";
-import { ModalFormularioProveedor } from "../components/proveedores/modalProveedores";
+import { ModalFormularioProveedor } from "../components/organismos/ModalProveedores";
 import { useProveedores } from "../hooks/useProveedores";
 
 export const Proveedores = () => {

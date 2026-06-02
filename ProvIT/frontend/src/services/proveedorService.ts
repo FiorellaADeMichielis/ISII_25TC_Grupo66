@@ -1,6 +1,10 @@
 import { api } from './api';
 import type { Proveedor } from '../types/proveedor.types';
 
+//Se utiliza el patrón de diseño Adapter para mapear las respuestas del backend a la estructura que espera el frontend, y viceversa.
+//Esto desacopla ambos lados y facilita futuros cambios en la API sin afectar la lógica de negocio del frontend.
+
+// === INTERFACES DE CONTRATO (Lo que el servicio espera recibir o devolver) ===
 interface RespuestaBackend<T> {
   success: boolean;
   mensaje?: string;
@@ -62,7 +66,6 @@ const mapearABackend = (data: Partial<Proveedor>) => {
   if (data.email !== undefined) payload.correo_proveedor = data.email;
   if (data.cuit !== undefined) payload.cuit = data.cuit;
   if (data.telefono !== undefined) payload.telefono = data.telefono;
-  if (data.estado !== undefined) payload.estado = data.estado === 'Activo';
   
   if (data.direcciones !== undefined) {
     payload.direcciones = data.direcciones.map(d => ({
@@ -84,35 +87,48 @@ export const proveedoresService = {
   },
 
   crear: async (data: Omit<Proveedor, 'id'>) => {
-  const payloadBackend = mapearABackend(data);
-  try {
-    const response = await api.post<RespuestaBackend<ProveedorBackend>>('/proveedores/', payloadBackend);
-    return mapearProveedor(response.data.data);
-  } catch (err: any) {
-    // Django devuelve { success: false, errores: { cuit: [...], ... } }
-    const erroresBackend = err?.response?.data?.errores;
-    throw erroresBackend ?? { general: 'Error al conectar con el servidor.' };
-  }
-},
-
-actualizar: async (id: number, data: Partial<Proveedor>) => {
-  const payloadBackend = mapearABackend(data);
-  try {
-    const response = await api.patch<RespuestaBackend<ProveedorBackend>>(`/proveedores/${id}/`, payloadBackend);
-    return mapearProveedor(response.data.data);
-  } catch (err: any) {
-    const erroresBackend = err?.response?.data?.errores;
-    throw erroresBackend ?? { general: 'Error al conectar con el servidor.' };
-  }
-},
-  eliminar: async (id: number) => {
-    await api.delete(`/proveedores/${id}/`);
-    return id;
+    const payloadBackend = mapearABackend(data);
+    try {
+      const response = await api.post<RespuestaBackend<ProveedorBackend>>('/proveedores/', payloadBackend);
+      return mapearProveedor(response.data.data);
+    } catch (err: any) {
+      const erroresBackend = err?.response?.data?.errores;
+      throw erroresBackend ?? { general: 'Error al conectar con el servidor.' };
+    }
   },
 
+  actualizar: async (id: number, data: Partial<Proveedor>) => {
+    const payloadBackend = mapearABackend(data);
+    try {
+      const response = await api.patch<RespuestaBackend<ProveedorBackend>>(`/proveedores/${id}/`, payloadBackend);
+      return mapearProveedor(response.data.data);
+    } catch (err: any) {
+      const erroresBackend = err?.response?.data?.errores;
+      throw erroresBackend ?? { general: 'Error al conectar con el servidor.' };
+    }
+  },
+
+  // AÑADIDO: Manejo de errores para capturar rechazos de permisos (403) o Not Found (404)
+  eliminar: async (id: number) => {
+    try {
+      await api.delete(`/proveedores/${id}/`);
+      return id;
+    } catch (err: any) {
+      // DRF envía los errores de permisos genéricos en la propiedad "detail" o "errores" (según tu helper en Django)
+      const errorMsg = err?.response?.data?.errores || err?.response?.data?.detail;
+      throw { general: errorMsg || 'No tienes permisos para dar de baja o hubo un error de conexión.' };
+    }
+  },
+
+  // AÑADIDO: Manejo de errores estructurado
   reactivar: async (id: number) => {
-    const response = await api.patch<RespuestaBackend<ProveedorBackend>>(`/proveedores/${id}/reactivar/`);
-    return mapearProveedor(response.data.data);
+    try {
+      const response = await api.patch<RespuestaBackend<ProveedorBackend>>(`/proveedores/${id}/reactivar/`);
+      return mapearProveedor(response.data.data);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.errores || err?.response?.data?.detail;
+      throw { general: errorMsg || 'No tienes permisos para reactivar o hubo un error de conexión.' };
+    }
   },
 
 };
