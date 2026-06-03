@@ -12,7 +12,10 @@ from .views import (
     ProveedorDetalleView,
     ProveedorReactivarView,
     UsuarioRegistroView, 
-    ProvITLoginView
+    ProvITLoginView,
+    EstadisticasFiltrosView,
+    EstadisticasAnalisisProveedorView,
+    EstadisticasTopProveedoresView
 )
 
 urlpatterns = [
@@ -24,9 +27,9 @@ urlpatterns = [
     path("registro/", UsuarioRegistroView.as_view(), name="usuario_registro"),
 
     # ==========================================
-    # MÓDULO PROVEEDORES
+    # MÓDULO PROVEEDORES: 
     # ==========================================
-    # verProveedores + agregarProveedor
+    #Acá tengo verProveedores + agregarProveedor
     path(
         "proveedores/",
         ProveedorListaView.as_view(),
@@ -43,5 +46,27 @@ urlpatterns = [
         "proveedores/<int:pk>/reactivar/",
         ProveedorReactivarView.as_view(),
         name="proveedor-reactivar",
+    ),
+    
+    # ==========================================
+    # MÓDULO ESTADÍSTICAS (Análisis de Compras)
+    # ==========================================
+    # Obtiene los datos iniciales para llenar los selectores (Filtros)
+    path(
+        "estadisticas/filtros/", 
+        EstadisticasFiltrosView.as_view(), 
+        name="estadisticas-filtros"
+    ),
+    # Realiza el análisis de un proveedor o producto específico
+    path(
+        "estadisticas/analisis-proveedor/", 
+        EstadisticasAnalisisProveedorView.as_view(), 
+        name="estadisticas-analisis-proveedor"
+    ),
+    # Genera el ranking Top Mejores/Peores
+    path(
+        "estadisticas/top-proveedores/", 
+        EstadisticasTopProveedoresView.as_view(), 
+        name="estadisticas-top-proveedores"
     ),
 ]
