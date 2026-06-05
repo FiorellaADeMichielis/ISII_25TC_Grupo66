@@ -51,6 +51,10 @@ urlpatterns = [
     # ==========================================
     # MÓDULO ESTADÍSTICAS (Análisis de Compras)
     # ==========================================
+    path(
+        "estadisticas",
+        EstadisticasFiltrosView.as_view(),
+        name="estadisticas",),
     # Obtiene los datos iniciales para llenar los selectores (Filtros)
     path(
         "estadisticas/filtros/", 

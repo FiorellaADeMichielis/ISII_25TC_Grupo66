@@ -1,16 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ROLES } from "./types/layout.types";
+import { ROLES } from "./modelos/types/layout.types";
 import { AuthProvider } from "./context/AuthContext";
-import { ProtectedRoute } from "./components/router/protectedRoute";
+import { ProtectedRoute } from "./router/protectedRoute";
 
-import { Login }         from "./pages/Login";
-import { Registro }      from "./pages/Registro";
-import { Dashboard }     from "./components/layout/Dashboard";
-import { Estadisticas }      from "./pages/Estadisticas";
-import { Proveedores }   from "./pages/Proveedores";
-import { Pedidos }      from "./pages/Pedidos";
-import { Usuarios }      from "./pages/Usuarios";
-import { Configuracion } from "./pages/Configuracion";
+import { Login }         from "./vistas/pages/Login";
+import { Registro }      from "./vistas/pages/Registro";
+import { Dashboard }     from "./vistas/components/layout/Dashboard";
+import { Estadisticas }      from "./vistas/pages/Estadisticas";
+import { Proveedores }   from "./vistas/pages/Proveedores";
+import { Pedidos }      from "./vistas/pages/Pedidos";
+import { Usuarios }      from "./vistas/pages/Usuarios";
+import { Configuracion } from "./vistas/pages/Configuracion";
 
 const TODOS = [ROLES.OPERADOR, ROLES.ADMINISTRADOR, ROLES.GERENTE];
 

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from "react";
-import { loginService } from "../services/authService";
-import type { Usuario, LoginCredentials } from "../types/auth.types";
+import { loginService } from "../modelos/services/authService";
+import type { Usuario, LoginCredentials } from "../modelos/types/auth.types";
 
 interface AuthContextValue {
   user: Usuario | null;
