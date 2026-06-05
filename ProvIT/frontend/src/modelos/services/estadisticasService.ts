@@ -20,6 +20,12 @@ export interface FiltrosTopProveedores {
 // ============================================================================
 // 2. DTOs DEL BACKEND (Lo que escupe Django según tu services.py)
 // ============================================================================
+interface ApiResponse<T> {
+  success: boolean;
+  mensaje?: string;
+  data: T;
+}
+
 interface FiltrosBackend {
   proveedores: { id_proveedor: number; nombre_proveedor: string }[];
   productos: { id_producto: number; nombre_producto: string; fk_categoria__nombre_categoria: string }[];
@@ -129,24 +135,25 @@ const mapearAnalisis = (dto: AnalisisBackend): AnalisisUI => ({
 export const estadisticasService = {
 
   obtenerFiltrosDisponibles: async (): Promise<DatosFiltrosUI> => {
-    const response = await api.get<FiltrosBackend>('/estadisticas/filtros/');
-    return mapearFiltros(response.data);
+    // avisa a TS que Django envuelve los FiltrosBackend en un ApiResponse
+    const response = await api.get<ApiResponse<FiltrosBackend>>('/estadisticas/filtros/');
+    
+    // extrae el .data de Axios, y el .data de Django
+    return mapearFiltros(response.data.data);
   },
 
   obtenerAnalisisProveedor: async (filtros: FiltrosAnalisisProveedor): Promise<AnalisisUI> => {
-    const response = await api.get<AnalisisBackend>('/estadisticas/analisis-proveedor/', {
+    const response = await api.get<ApiResponse<AnalisisBackend>>('/estadisticas/analisis-proveedor/', {
       params: filtros 
     });
-    return mapearAnalisis(response.data);
+    return mapearAnalisis(response.data.data);
   },
 
   obtenerTopProveedores: async (filtros: FiltrosTopProveedores) => {
-    // Acá no mapeamos mucho porque tu backend de Python ya envía la estructura
-    // 'graficaBarras' y 'graficaLineas' lista para inyectarse en los gráficos.
-    const response = await api.get<TopBackend>('/estadisticas/top-proveedores/', {
+    const response = await api.get<ApiResponse<TopBackend>>('/estadisticas/top-proveedores/', {
       params: filtros
     });
-    return response.data;
+    return response.data.data;
   }
 
 };

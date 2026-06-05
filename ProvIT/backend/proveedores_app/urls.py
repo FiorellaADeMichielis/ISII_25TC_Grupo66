@@ -8,6 +8,9 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from .views import (
+    PedidoCambiarEstadoView,
+    PedidoListaView,
+    PedidoRegistrarEntregaView,
     ProveedorListaView,
     ProveedorDetalleView,
     ProveedorReactivarView,
@@ -72,5 +75,24 @@ urlpatterns = [
         "estadisticas/top-proveedores/", 
         EstadisticasTopProveedoresView.as_view(), 
         name="estadisticas-top-proveedores"
+    ),
+
+    #MÓDULO PEDIDOS
+    path(
+        "pedidos/", 
+        PedidoListaView.as_view(), 
+        name="pedidos-lista"
+    ),
+    # Método de clase: registrarEntrega(fecha:Date):void
+    path(
+        "pedidos/<int:pk>/entrega/", 
+        PedidoRegistrarEntregaView.as_view(), 
+        name="pedido-registrar-entrega"
+    ),
+    # Método de clase: cambiarEstado(nuevoEstado:String):void
+    path(
+        "pedidos/<int:pk>/estado/", 
+        PedidoCambiarEstadoView.as_view(), 
+        name="pedido-cambiar-estado"
     ),
 ]
