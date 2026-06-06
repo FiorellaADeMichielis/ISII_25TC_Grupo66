@@ -1,9 +1,10 @@
 // ============================================================================
 // 1. CONTRATOS DE PETICIÓN (Request DTOs)
 // ============================================================================
+
 export interface FiltrosAnalisisProveedor {
-  id: number;
-  tipo: string;
+  proveedor_id: number;    // Cambiado de 'id' a 'proveedor_id'
+  producto_id?: number;    // Opcional, según tu views.py
   fecha_inicio: string;
   fecha_fin: string;
 }
@@ -13,6 +14,8 @@ export interface FiltrosTopProveedores {
   filtro_por: 'proveedor' | 'producto';
   variables: string;
   limite: number;
+  fecha_inicio: string;    // Django view exige estos parámetros
+  fecha_fin: string;       // Django view exige estos parámetros
 }
 
 // ============================================================================
@@ -29,7 +32,13 @@ export interface AnalisisBackend {
   producto_id: number | null;
   periodo: { desde: string; hasta: string };
   graficaTorta: { precio: number; calidad: number; velocidad: number };
-  graficaLineas: { anio: number; precio: number; calidad: number; velocidad: number }[];
+  graficaLineas: {
+    anio?: number;   // presente cuando el rango es multi-año
+    mes?: number;    // presente cuando el rango es dentro del mismo año
+    precio: number | null;
+    calidad: number | null;
+    velocidad: number | null;
+  }[];
   recomendacion: string;
 }
 

@@ -4,8 +4,8 @@ import { api } from './api';
 // 1. CONTRATOS DE PETICIÓN (Request DTOs)
 // ============================================================================
 export interface FiltrosAnalisisProveedor {
-  id: number;
-  tipo: string;
+  proveedor_id?: number; // Corregido: nombre exacto que espera el backend
+  producto_id?: number;
   fecha_inicio: string;
   fecha_fin: string;
 }
@@ -13,12 +13,14 @@ export interface FiltrosAnalisisProveedor {
 export interface FiltrosTopProveedores {
   tipo: 'mejor' | 'peor';
   filtro_por: 'proveedor' | 'producto';
-  variables: string; // ej: "precio,calidad"
+  variables: string;
   limite: number;
+  fecha_inicio: string;
+  fecha_fin: string;
 }
 
 // ============================================================================
-// 2. DTOs DEL BACKEND (Lo que escupe Django según tu services.py)
+// 2. DTOs DEL BACKEND
 // ============================================================================
 interface ApiResponse<T> {
   success: boolean;
@@ -37,7 +39,14 @@ interface AnalisisBackend {
   producto_id: number | null;
   periodo: { desde: string; hasta: string };
   graficaTorta: { precio: number; calidad: number; velocidad: number };
-  graficaLineas: { anio: number; precio: number; calidad: number; velocidad: number }[];
+  // Aceptamos mes o anio indistintamente
+  graficaLineas: { 
+    anio?: number; 
+    mes?: number; 
+    precio: number | null; 
+    calidad: number | null; 
+    velocidad: number | null 
+  }[];
   recomendacion: string;
 }
 
@@ -47,11 +56,11 @@ interface TopBackend {
   variables: string[];
   periodo: { desde: string; hasta: string };
   graficaBarras: { nombre: string; puntaje: number; precio: number; calidad: number; velocidad: number }[];
-  graficaLineas: any[]; // Array dinámico: { anio: 2024, "Prov A": 4.5, "Prov B": 3.2 }
+  graficaLineas: any[];
 }
 
 // ============================================================================
-// 3. MODELOS DE DOMINIO (Lo que consume React y Recharts)
+// 3. MODELOS DE DOMINIO
 // ============================================================================
 export interface OpcionSelect {
   value: number | string;
@@ -68,46 +77,42 @@ export interface DatosFiltrosUI {
 export interface AnalisisUI {
   proveedor: string;
   recomendacion: string;
-  datosTorta: { name: string; value: number }[]; // Formateado para <PieChart> de Recharts
-  datosLineas: any[]; // Directo al <LineChart>
+  datosTorta: { name: string; value: number }[];
+  datosLineas: { 
+    etiqueta: string; // Normalizada: "Ene", "Feb"... o "2026"
+    precio: number; 
+    calidad: number; 
+    velocidad: number 
+  }[];
 }
 
 // ============================================================================
 // 4. DATA MAPPERS (Capa Anticorrupción)
 // ============================================================================
 
+const obtenerNombreMes = (num: number) => 
+  ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][num];
+
 const mapearFiltros = (dto: FiltrosBackend): DatosFiltrosUI => {
-  // 1. Defensa absoluta: Si el backend no manda nada o falla silenciosamente
-  if (!dto) {
-    return { proveedores: [], productos: [], mapaProductos: {} };
-  }
+  if (!dto) return { proveedores: [], productos: [], mapaProductos: {} };
 
   const mapaLimpio: Record<number, OpcionSelect[]> = {};
-  
-  // 2. Extraemos el diccionario de forma segura (si es undefined, usamos {})
   const mapaBackendSeguro = dto.productos_por_proveedor || {};
 
-  // Limpiamos las keys del diccionario que vienen como string desde Python
   Object.keys(mapaBackendSeguro).forEach((provId) => {
-    // Por las dudas, aseguramos que el valor de esa key sea un array
     const productosDelProveedor = mapaBackendSeguro[provId] || [];
-    
     mapaLimpio[Number(provId)] = productosDelProveedor.map(p => ({
       value: p.id_producto,
       label: p.nombre_producto
     }));
   });
 
-  // 3. Extraemos las listas de forma segura (si son undefined, usamos [])
-  const proveedoresSeguros = dto.proveedores || [];
-  const productosSeguros = dto.productos || [];
-
   return {
-    proveedores: proveedoresSeguros.map(p => ({
+    proveedores: (dto.proveedores || []).map(p => ({
       value: p.id_proveedor,
       label: p.nombre_proveedor
     })),
-    productos: productosSeguros.map(p => ({
+    productos: (dto.productos || []).map(p => ({
       value: p.id_producto,
       label: p.nombre_producto,
       categoria: p.fk_categoria__nombre_categoria
@@ -116,18 +121,27 @@ const mapearFiltros = (dto: FiltrosBackend): DatosFiltrosUI => {
   };
 };
 
-const mapearAnalisis = (dto: AnalisisBackend): AnalisisUI => ({
-  proveedor: dto.proveedor.nombre,
-  recomendacion: dto.recomendacion,
-  // Transformamos el diccionario plano en un array de objetos para Recharts
-  datosTorta: [
-    { name: 'Precio', value: dto.graficaTorta.precio },
-    { name: 'Calidad', value: dto.graficaTorta.calidad },
-    { name: 'Velocidad', value: dto.graficaTorta.velocidad },
-  ].filter(item => item.value !== null), // Evitamos graficar nulos
-  
-  datosLineas: dto.graficaLineas
-});
+const mapearAnalisis = (dto: AnalisisBackend): AnalisisUI => {
+  return {
+    proveedor: dto.proveedor.nombre,
+    recomendacion: dto.recomendacion,
+    datosTorta: [
+      { name: 'Precio',    value: dto.graficaTorta.precio    ?? 0 },
+      { name: 'Calidad',   value: dto.graficaTorta.calidad   ?? 0 },
+      { name: 'Velocidad', value: dto.graficaTorta.velocidad ?? 0 },
+    ].filter(item => item.value > 0),
+
+    datosLineas: dto.graficaLineas.map(item => ({
+      // Si viene mes → "Ene", "Feb"... Si viene anio → "2024", "2025"...
+      etiqueta:  item.mes  ? obtenerNombreMes(item.mes)
+               : item.anio ? String(item.anio)
+               : "",
+      precio:    item.precio    ?? 0,
+      calidad:   item.calidad   ?? 0,
+      velocidad: item.velocidad ?? 0,
+    })),
+  };
+};
 
 // ============================================================================
 // 5. FACHADA (Facade)
@@ -135,14 +149,12 @@ const mapearAnalisis = (dto: AnalisisBackend): AnalisisUI => ({
 export const estadisticasService = {
 
   obtenerFiltrosDisponibles: async (): Promise<DatosFiltrosUI> => {
-    // avisa a TS que Django envuelve los FiltrosBackend en un ApiResponse
     const response = await api.get<ApiResponse<FiltrosBackend>>('/estadisticas/filtros/');
-    
-    // extrae el .data de Axios, y el .data de Django
     return mapearFiltros(response.data.data);
   },
 
   obtenerAnalisisProveedor: async (filtros: FiltrosAnalisisProveedor): Promise<AnalisisUI> => {
+    // Axios serializa automáticamente el objeto 'filtros' en parámetros de URL
     const response = await api.get<ApiResponse<AnalisisBackend>>('/estadisticas/analisis-proveedor/', {
       params: filtros 
     });
@@ -155,5 +167,4 @@ export const estadisticasService = {
     });
     return response.data.data;
   }
-
 };

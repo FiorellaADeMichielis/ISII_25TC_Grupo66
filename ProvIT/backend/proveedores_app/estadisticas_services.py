@@ -23,6 +23,7 @@ Funciones expuestas (nomenclatura del proyecto - verboAdjetivo):
 """
 
 from abc import ABC, abstractmethod
+import calendar
 from datetime import date
 from typing import Optional
 
@@ -475,15 +476,13 @@ def verAnalisisProveedor(
         producto_id=producto_id,
         rango_precios_global=rango_global,
     )
-
-    # Evolución anual (para la gráfica de líneas)
-    grafica_lineas = calcularEvolucionAnual(
-        proveedor_id=proveedor_id,
-        fecha_inicio=fecha_inicio,
-        fecha_fin=fecha_fin,
-        producto_id=producto_id,
-        rango_precios_global=rango_global,
-    )
+    grafica_lineas = calcularEvolucion(
+    proveedor_id=proveedor_id,
+    fecha_inicio=fecha_inicio,
+    fecha_fin=fecha_fin,
+    producto_id=producto_id,
+    rango_global=rango_global,
+)
 
     # Recomendación textual
     recomendacion = _generarRecomendacion(
@@ -544,7 +543,44 @@ def calcularEvolucionAnual(
 
     return resultado
 
+def calcularEvolucionMensual(
+    proveedor_id: int, 
+    anio: int, 
+    producto_id: Optional[int], 
+    rango_precios_global: dict
+) -> list:
+    """Calcula la evolución mes a mes para un año específico."""
+    resultado = []
+    
+    for mes in range(1, 13):
+        _, ultimo_dia = calendar.monthrange(anio, mes)
+        inicio_periodo = date(anio, mes, 1)
+        fin_periodo = date(anio, mes, ultimo_dia)
 
+        escalas = _calcularEscalasPorPeriodo(
+            proveedor_id, inicio_periodo, fin_periodo, producto_id, rango_precios_global
+        )
+        
+        # Guarda el mes como identificador clave
+        resultado.append({
+            'mes': mes, 
+            'precio': escalas['precio'],
+            'calidad': escalas['calidad'],
+            'velocidad': escalas['velocidad']
+        })
+    return resultado
+def calcularEvolucion(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global):
+    # --- AGREGA ESTO ---
+    print(f"DEBUG: Inicio: {fecha_inicio}, Fin: {fecha_fin}")
+    print(f"DEBUG: ¿Son iguales los años?: {fecha_inicio.year == fecha_fin.year}")
+    # -------------------
+
+    if fecha_inicio.year == fecha_fin.year:
+        print("DEBUG: Entrando en lógica MENSUAL")
+        return calcularEvolucionMensual(proveedor_id, fecha_inicio.year, producto_id, rango_global)
+    
+    print("DEBUG: Entrando en lógica ANUAL")
+    return calcularEvolucionAnual(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global)
 # =============================================================================
 # SERVICIO: TOP 3 PROVEEDORES / PRODUCTOS
 # =============================================================================
