@@ -18,7 +18,8 @@ from .views import (
     ProvITLoginView,
     EstadisticasFiltrosView,
     EstadisticasAnalisisProveedorView,
-    EstadisticasTopProveedoresView
+    EstadisticasTopProveedoresView,
+    ProductoListaView,
 )
 
 urlpatterns = [
@@ -95,4 +96,11 @@ urlpatterns = [
         PedidoCambiarEstadoView.as_view(), 
         name="pedido-cambiar-estado"
     ),
+    # MÓDULO PRODUCTOS
+    path(
+        "productos/", 
+        ProductoListaView.as_view(), 
+        name="productos-lista"
+    ),
+
 ]

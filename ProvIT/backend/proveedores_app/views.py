@@ -29,12 +29,13 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
 from django.core.exceptions import ObjectDoesNotExist
+
 from . import services, pedido_services
-from .models import Usuario
-from .serializers import UsuarioRegistroSerializer
+from .models import Usuario, Producto
+from .serializers import UsuarioRegistroSerializer, ProductoSerializer, ProvITTokenSerializer
+from rest_framework import generics
 
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import ProvITTokenSerializer
 from datetime import date
 from .estadisticas_services import (verFiltrosAnalisis,verAnalisisProveedor, verTopProveedores,
                 )
@@ -507,3 +508,11 @@ class PedidoCambiarEstadoView(APIView):
             return respuestaError(str(e), status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return respuestaError(f"Error al cambiar estado: {str(e)}")
+        
+# ===========================================================================
+# 8. CONTROLADORES DEL MÓDULO PRODUCTOS   
+# ===========================================================================
+
+class ProductoListaView(generics.ListAPIView):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer

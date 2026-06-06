@@ -9,7 +9,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.hashers import check_password
 from rest_framework import serializers
-from .models import Proveedor, Direccion, Localidad, Provincia, Usuario, Rol
+from .models import Producto, Proveedor, Direccion, Localidad, Provincia, Usuario, Rol
 from django.contrib.auth.hashers import make_password
 
 
@@ -270,3 +270,11 @@ class ProvITTokenSerializer(TokenObtainPairSerializer):
             'access':  str(refresh.access_token),
             'refresh': str(refresh),
         }
+    
+# ===========================================================================
+#Producto Serializer
+# ===========================================================================
+class ProductoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Producto
+        fields = '__all__'
