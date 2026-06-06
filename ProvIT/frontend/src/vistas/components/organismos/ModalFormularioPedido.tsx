@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import type { PedidoFormData, ErroresFormPedido } from '../../../modelos/types/pedido.types';
+import type { ErroresFormPedido, PedidoFormData } from '../../../modelos/types/pedido.types';
 import { ModalPedidoVista } from '../UI/Modales/ModalPedidoVista';
+import { useForm } from '../../../modelos-vista/hooks/useForm';
 
 interface ModalFormularioPedidoProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ interface ModalFormularioPedidoProps {
 const formInicial: PedidoFormData = {
   proveedorId: '',
   fechaEntregaEsperada: '',
-  fechaEntregaReal: '', 
+  fechaEntregaReal: '',
   detalles: [{ productoId: '', cantidad: '', precioUnitario: '' }]
 };
 
@@ -22,68 +23,91 @@ export const ModalFormularioPedido = ({
   isOpen, onClose, onGuardar, procesarOCR, isSubmitting, procesandoOCR
 }: ModalFormularioPedidoProps) => {
 
-  const [modo, setModo] = useState<'ocr' | 'manual'>('ocr');
-  const [formData, setFormData] = useState<PedidoFormData>(formInicial);
-  const [errores, setErrores] = useState<ErroresFormPedido>({});
+  const rules = {
+    proveedorId: (val: any) => !val ? 'Proveedor requerido' : undefined,
+    fechaEntregaEsperada: (val: any) => !val ? 'Fecha requerida' : undefined,
+  };
 
-  // TODO: Conectar a tu useProveedores/useProductos real
+  const { values: formData, setFormData, errors, setErrorsState, clearError, validate } = useForm<PedidoFormData>(formInicial, rules as any);
+
+  const [modo, setModo] = useState<'ocr' | 'manual'>('ocr');
+  const [erroresDetalle, setErroresDetalle] = useState<Record<number, Record<string, string>>>({});
+
   const mockProveedores = [{ id: 1, nombre: 'TechInsumos S.A.' }, { id: 2, nombre: 'Distribuidora Litoral' }];
   const mockProductos = [{ id: 1, nombre: 'Monitor 24"' }, { id: 2, nombre: 'Teclado Mecánico' }];
 
   const handleCambiarModo = (nuevoModo: 'ocr' | 'manual') => {
     setModo(nuevoModo);
-    setErrores({});
+    setErrorsState({});
+    setErroresDetalle({});
   };
 
   const handleCargaArchivoOCR = async (archivo: File) => {
     const datosExtraidos = await procesarOCR(archivo);
     if (datosExtraidos) {
       setFormData({
-        ...formInicial,
-        ...datosExtraidos,
+        proveedorId: datosExtraidos.proveedorId || '',
+        fechaEntregaEsperada: datosExtraidos.fechaEntregaEsperada || '',
+        fechaEntregaReal: datosExtraidos.fechaEntregaReal || '',
         detalles: datosExtraidos.detalles?.length ? datosExtraidos.detalles : formInicial.detalles
       });
-      setModo('manual'); 
+      setModo('manual');
     } else {
-      setErrores({ general: 'No se pudo leer el documento. Por favor, realice la carga manual.' });
+      setErrorsState({ general: 'No se pudo leer el documento. Por favor, realice la carga manual.' });
     }
   };
 
   const handleAgregarDetalle = () => {
-    setFormData(prev => ({
-      ...prev,
-      detalles: [...prev.detalles, { productoId: '', cantidad: '', precioUnitario: '' }]
-    }));
+    setFormData({ ...formData, detalles: [...formData.detalles, { productoId: '', cantidad: '', precioUnitario: '' }] });
   };
 
   const handleQuitarDetalle = (index: number) => {
-    setFormData(prev => {
-      const nuevosDetalles = prev.detalles.filter((_, i) => i !== index);
-      return { ...prev, detalles: nuevosDetalles.length ? nuevosDetalles : [{ productoId: '', cantidad: '', precioUnitario: '' }] };
-    });
+    const nuevosDetalles = formData.detalles.filter((_, i) => i !== index);
+    setFormData({ ...formData, detalles: nuevosDetalles.length ? nuevosDetalles : [{ productoId: '', cantidad: '', precioUnitario: '' }] });
   };
 
-  const handleChangeDetalle = (index: number, campo: keyof PedidoFormData['detalles'][0], valor: string | number) => {
-    setFormData(prev => {
-      const nuevosDetalles = [...prev.detalles];
-      nuevosDetalles[index] = { ...nuevosDetalles[index], [campo]: valor };
-      return { ...prev, detalles: nuevosDetalles };
-    });
+  const handleChangeCabecera = (campo: keyof PedidoFormData, valor: any) => {
+    setFormData({ ...formData, [campo]: valor });
+    clearError(campo);
+  };
+
+  const handleChangeDetalle = (index: number, campo: string, valor: any) => {
+    const nuevosDetalles = [...formData.detalles];
+    nuevosDetalles[index] = { ...nuevosDetalles[index], [campo]: valor };
+    setFormData({ ...formData, detalles: nuevosDetalles });
+    
+    if (erroresDetalle[index]) {
+       const nuevosErrores = { ...erroresDetalle };
+       delete nuevosErrores[index][campo];
+       setErroresDetalle(nuevosErrores);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.proveedorId || !formData.fechaEntregaEsperada) {
-      setErrores({ general: 'Complete los campos obligatorios de cabecera.' });
-      return;
-    }
+    
+    const isCabeceraValida = validate();
+    
+    const nuevosErroresDetalle: Record<number, Record<string, string>> = {};
+    formData.detalles.forEach((det, i) => {
+      const fila: Record<string, string> = {};
+      if (!det.productoId) fila['productoId'] = 'Requerido';
+      if (!det.cantidad || Number(det.cantidad) <= 0) fila['cantidad'] = 'Inválido';
+      if (!det.precioUnitario || Number(det.precioUnitario) <= 0) fila['precioUnitario'] = 'Inválido';
+      
+      if (Object.keys(fila).length > 0) nuevosErroresDetalle[i] = fila;
+    });
+
+    setErroresDetalle(nuevosErroresDetalle);
+
+    if (!isCabeceraValida || Object.keys(nuevosErroresDetalle).length > 0) return;
     
     const exito = await onGuardar(formData);
     if (exito) {
       setFormData(formInicial);
       setModo('ocr');
     } else {
-      setErrores({ general: 'Error al registrar el pedido en la base de datos.' });
+      setErrorsState({ general: 'Error al registrar el pedido en la base de datos.' });
     }
   };
 
@@ -92,7 +116,8 @@ export const ModalFormularioPedido = ({
       isOpen={isOpen}
       modo={modo}
       formData={formData}
-      errores={errores}
+      errores={errors as ErroresFormPedido}
+      erroresDetalle={erroresDetalle}
       isSubmitting={isSubmitting}
       procesandoOCR={procesandoOCR}
       proveedores={mockProveedores}
@@ -100,7 +125,7 @@ export const ModalFormularioPedido = ({
       onClose={onClose}
       onCambiarModo={handleCambiarModo}
       onSubirArchivo={handleCargaArchivoOCR}
-      onChangeCabecera={(campo, valor) => setFormData(prev => ({ ...prev, [campo]: valor }))}
+      onChangeCabecera={handleChangeCabecera}
       onChangeDetalle={handleChangeDetalle}
       onAgregarDetalle={handleAgregarDetalle}
       onQuitarDetalle={handleQuitarDetalle}

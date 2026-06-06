@@ -1,14 +1,14 @@
-//modalProveedorVista.tsx
 import React from 'react';
 import { X } from 'lucide-react';
 import type { Proveedor, Direccion } from '../../../../modelos/types/proveedor.types';
 import { SelectorUbicacion } from '../SelectorUbicacion';
 import { type ErroresForm } from "../../../../modelos/types/proveedor.types";
+
 interface ModalVistaProps {
   isOpen: boolean;
   onClose: () => void;
   formData: Omit<Proveedor, 'id'>;
-  errores: ErroresForm;
+  errores: ErroresForm; // Aquí llegan los errores del useForm
   isSubmitting: boolean;
   isEdicion: boolean;
   puedeEditarEstado: boolean;
@@ -18,18 +18,15 @@ interface ModalVistaProps {
 }
 
 export const ModalProveedorVista = ({
-  isOpen,
-  onClose,
-  formData,
-  errores,
-  isSubmitting,
-  isEdicion,
-  puedeEditarEstado,
-  onChangeData,
-  onChangeDireccion,
-  onSubmit,
+  isOpen, onClose, formData, errores, isSubmitting, isEdicion,
+  puedeEditarEstado, onChangeData, onChangeDireccion, onSubmit,
 }: ModalVistaProps) => {
   if (!isOpen) return null;
+
+  // Clase utilitaria para evitar repetir lógica en cada input
+  const inputClass = (error?: string) => 
+    `w-full px-4 py-2 border rounded-lg outline-none transition-colors 
+    ${error ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-slate-300 focus:ring-2 focus:ring-blue-500'}`;
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -41,9 +38,6 @@ export const ModalProveedorVista = ({
             <h2 className="text-xl font-bold text-slate-800">
               {isEdicion ? 'Editar Proveedor' : 'Nuevo Proveedor'}
             </h2>
-            <p className="text-slate-500 text-sm mt-1">
-              {isEdicion ? 'Modificá los datos del proveedor.' : 'Registrá un nuevo proveedor.'}
-            </p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
             <X size={24} />
@@ -69,8 +63,7 @@ export const ModalProveedorVista = ({
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
                 <input
                   type="text" required
-                  className={`w-full px-4 py-2 border rounded-lg outline-none transition-colors
-                    ${errores.nombre ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-slate-300 focus:ring-2 focus:ring-blue-500'}`}
+                  className={inputClass(errores.nombre)}
                   value={formData.nombre}
                   onChange={(e) => onChangeData({ nombre: e.target.value })}
                 />
@@ -84,13 +77,9 @@ export const ModalProveedorVista = ({
                   type="text" inputMode="numeric" required
                   placeholder="Ej: 30123456789 (Sin guiones)"
                   maxLength={11}
-                  className={`w-full px-4 py-2 border rounded-lg outline-none transition-colors
-                    ${errores.cuit ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-slate-300 focus:ring-2 focus:ring-blue-500'}`}
+                  className={inputClass(errores.cuit)}
                   value={formData.cuit}
-                  onChange={(e) => {
-                    const soloNumeros = e.target.value.replace(/\D/g, '');
-                    onChangeData({ cuit: soloNumeros });
-                  }}
+                  onChange={(e) => onChangeData({ cuit: e.target.value.replace(/\D/g, '') })}
                 />
                 {errores.cuit && <p className="text-xs text-red-500 mt-1 font-medium">{errores.cuit}</p>}
               </div>
@@ -101,8 +90,7 @@ export const ModalProveedorVista = ({
                   <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                   <input
                     type="email" required
-                    className={`w-full px-4 py-2 border rounded-lg outline-none transition-colors
-                      ${errores.email ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-slate-300 focus:ring-2 focus:ring-blue-500'}`}
+                    className={inputClass(errores.email)}
                     value={formData.email}
                     onChange={(e) => onChangeData({ email: e.target.value })}
                   />
@@ -116,13 +104,9 @@ export const ModalProveedorVista = ({
                     type="text" inputMode="numeric" required
                     placeholder="Ej: 5491145678900"
                     maxLength={13}
-                    className={`w-full px-4 py-2 border rounded-lg outline-none transition-colors
-                      ${errores.telefono ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-slate-300 focus:ring-2 focus:ring-blue-500'}`}
+                    className={inputClass(errores.telefono)}
                     value={formData.telefono}
-                    onChange={(e) => {
-                      const soloNumeros = e.target.value.replace(/\D/g, '');
-                      onChangeData({ telefono: soloNumeros });
-                    }}
+                    onChange={(e) => onChangeData({ telefono: e.target.value.replace(/\D/g, '') })}
                   />
                   {errores.telefono && <p className="text-xs text-red-500 mt-1 font-medium">{errores.telefono}</p>}
                 </div>
@@ -137,7 +121,6 @@ export const ModalProveedorVista = ({
                   <label className="block text-sm font-medium text-slate-700 mb-1">Calle</label>
                   <input
                     type="text" required
-                    placeholder="Ej: Av. Independencia"
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     value={formData.direcciones[0]?.calle || ''}
                     onChange={(e) => onChangeDireccion('calle', e.target.value)}
@@ -147,61 +130,29 @@ export const ModalProveedorVista = ({
                   <label className="block text-sm font-medium text-slate-700 mb-1">Altura</label>
                   <input
                     type="number" required
-                    placeholder="Ej: 1500" min="1"
-                    className={`w-full px-4 py-2 border rounded-lg outline-none transition-colors
-                      ${errores.altura ? 'border-red-500 focus:ring-2 focus:ring-red-200' : 'border-slate-300 focus:ring-2 focus:ring-blue-500'}`}
+                    min="1"
+                    className={inputClass(errores.altura)}
                     value={formData.direcciones[0]?.altura || ''}
                     onChange={(e) => onChangeDireccion('altura', Number(e.target.value))}
                   />
                   {errores.altura && <p className="text-xs text-red-500 mt-1 font-medium">{errores.altura}</p>}
                 </div>
               </div>
-              <div className="mt-4">
-                <SelectorUbicacion
-                  localidadSeleccionada={formData.direcciones[0]?.fk_localidad || ''}
-                  onChangeLocalidad={(idLoc) => onChangeDireccion('fk_localidad', idLoc)}
-                  provinciaInicial={formData.direcciones[0]?.id_provincia}
-                />
-              </div>
-            </div>
-
-            {/* Estado (RBAC aplicado) */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Estado
-                {!puedeEditarEstado && (
-                  <span className="text-xs text-red-500 ml-2 font-normal">
-                    (Solo Administradores o Gerencia)
-                  </span>
-                )}
-              </label>
-              <select
-                disabled={!puedeEditarEstado}
-                className={`w-full px-4 py-2 rounded-lg outline-none transition-colors border
-                  ${puedeEditarEstado ? 'bg-white border-slate-300 focus:ring-2 focus:ring-blue-500' : 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed'}`}
-                value={formData.estado}
-                onChange={(e) => onChangeData({ estado: e.target.value as 'Activo' | 'Inactivo' })}
-              >
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-              </select>
+              <SelectorUbicacion
+                localidadSeleccionada={formData.direcciones[0]?.fk_localidad || ''}
+                onChangeLocalidad={(idLoc) => onChangeDireccion('fk_localidad', idLoc)}
+                provinciaInicial={formData.direcciones[0]?.id_provincia}
+              />
             </div>
           </form>
         </div>
 
         {/* Botones */}
         <div className="flex justify-end gap-3 p-6 border-t border-slate-100 shrink-0 bg-white">
-          <button
-            type="button" onClick={onClose} disabled={isSubmitting}
-            className="px-5 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition-colors"
-          >
+          <button type="button" onClick={onClose} disabled={isSubmitting} className="px-5 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition-colors">
             Cancelar
           </button>
-          <button
-            type="submit" form="form-proveedor" disabled={isSubmitting}
-            className={`px-5 py-2 text-white font-medium rounded-lg transition-colors
-              ${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-          >
+          <button type="submit" form="form-proveedor" disabled={isSubmitting} className="px-5 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
             {isSubmitting ? 'Guardando...' : 'Guardar'}
           </button>
         </div>

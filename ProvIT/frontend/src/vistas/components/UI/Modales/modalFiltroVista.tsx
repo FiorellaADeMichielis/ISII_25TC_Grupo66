@@ -8,6 +8,7 @@ export interface ModalFiltrosVistaProps {
   fechaInicio: string;
   fechaFin: string;
   isLoading: boolean;
+  errors?: { elemento?: string; fechaInicio?: string; fechaFin?: string }; // <--- AGREGADO
   onCambiarTipo: (tipo: 'proveedor' | 'producto') => void;
   onChangeElemento: (id: number | '') => void;
   onChangeFechaInicio: (fecha: string) => void;
@@ -23,6 +24,7 @@ export const ModalFiltrosVista = ({
   fechaInicio,
   fechaFin,
   isLoading,
+  errors, // <--- RECIBIDO
   onCambiarTipo,
   onChangeElemento,
   onChangeFechaInicio,
@@ -35,7 +37,6 @@ export const ModalFiltrosVista = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in p-4">
       <div className="bg-white p-6 border border-gray-200 rounded-xl shadow-2xl w-full max-w-2xl relative">
         
-        {/* Botón de Cerrar */}
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -47,19 +48,15 @@ export const ModalFiltrosVista = ({
           <p className="text-sm text-gray-500 mt-1">Definí los parámetros de tu búsqueda</p>
         </div>
         
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={onSubmit} className="space-y-6" noValidate>
           
-          {/* RENGLÓN 1: Slide Button (Toggle) */}
           <div className="flex flex-col items-center">
             <div className="relative flex w-full bg-gray-100 rounded-lg p-1 border border-gray-200 shadow-inner">
-              {/* Fondo blanco que se desliza (El slider) */}
               <div 
                 className={`absolute inset-y-1 w-[calc(50%-4px)] bg-white rounded-md shadow transition-transform duration-300 ease-in-out ${
                   tipoBusqueda === 'producto' ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'
                 }`}
               ></div>
-              
-              {/* Opción Proveedor */}
               <button
                 type="button"
                 onClick={() => onCambiarTipo('proveedor')}
@@ -69,8 +66,6 @@ export const ModalFiltrosVista = ({
               >
                 Por Proveedor
               </button>
-              
-              {/* Opción Producto */}
               <button
                 type="button"
                 onClick={() => onCambiarTipo('producto')}
@@ -83,16 +78,16 @@ export const ModalFiltrosVista = ({
             </div>
           </div>
 
-          {/* RENGLÓN 2: Input Desplegable de Datos desde la BD */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Seleccionar {tipoBusqueda === 'proveedor' ? 'Proveedor' : 'Producto'} *
             </label>
             <select 
-              className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-gray-50 hover:bg-white"
+              className={`w-full border p-2.5 rounded-lg outline-none transition-colors ${
+                errors?.elemento ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+              }`}
               value={elementoSeleccionado}
               onChange={(e) => onChangeElemento(e.target.value === '' ? '' : Number(e.target.value))}
-              required
             >
               <option value="" disabled>Seleccione una opción de la lista...</option>
               {opcionesDropdown.map((opcion) => (
@@ -101,9 +96,9 @@ export const ModalFiltrosVista = ({
                 </option>
               ))}
             </select>
+            {errors?.elemento && <p className="text-red-500 text-xs mt-1">{errors.elemento}</p>}
           </div>
 
-          {/* RENGLÓN 3: Fechas (Opcionales) */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
             <h4 className="text-sm font-semibold text-gray-700 mb-3">Rango de fechas (Opcional)</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -111,27 +106,32 @@ export const ModalFiltrosVista = ({
                 <label className="block text-xs font-medium text-gray-600 mb-1">Desde</label>
                 <input 
                   type="date" 
-                  className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className={`w-full border p-2 rounded-lg outline-none ${
+                    errors?.fechaInicio ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                  }`}
                   value={fechaInicio}
                   onChange={(e) => onChangeFechaInicio(e.target.value)}
                 />
+                {errors?.fechaInicio && <p className="text-red-500 text-xs mt-1">{errors.fechaInicio}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Hasta</label>
                 <input 
                   type="date" 
-                  className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className={`w-full border p-2 rounded-lg outline-none ${
+                    errors?.fechaFin ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                  }`}
                   value={fechaFin}
                   onChange={(e) => onChangeFechaFin(e.target.value)}
                 />
+                {errors?.fechaFin && <p className="text-red-500 text-xs mt-1">{errors.fechaFin}</p>}
               </div>
             </div>
             <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
-              <span className="font-bold">ℹ️ Info:</span> Si no especificás fechas, se analizará todo el historial disponible.
+              <span className="font-bold">ℹ️ Info:</span> Si no especificás fechas, se analizará todo el historial.
             </p>
           </div>
 
-          {/* RENGLÓN 4: Botones de Acción */}
           <div className="flex justify-end gap-3 pt-2">
             <button 
               type="button" 
@@ -142,7 +142,7 @@ export const ModalFiltrosVista = ({
             </button>
             <button 
               type="submit" 
-              disabled={isLoading || elementoSeleccionado === ''}
+              disabled={isLoading}
               className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex justify-center items-center min-w-[140px]"
             >
               {isLoading ? (

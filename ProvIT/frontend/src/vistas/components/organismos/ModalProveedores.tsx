@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// Asegurate de que la ruta a tus tipos sea correcta
 import type { Proveedor, Direccion, ErroresBackend, ErroresForm } from '../../../modelos/types/proveedor.types';
 import { ModalProveedorVista } from '../UI/Modales/ModalProveedorVista';
 
@@ -49,25 +48,27 @@ export const ModalFormularioProveedor = ({
 
   const handleChangeData = (datosNuevos: Partial<Omit<Proveedor, 'id'>>) => {
     setFormData((prev) => ({ ...prev, ...datosNuevos }));
+    // Limpieza dinámica de errores al cambiar el valor
     const camposCambiados = Object.keys(datosNuevos) as Array<keyof ErroresForm>;
-    camposCambiados.forEach((campo) => {
-      if (errores[campo]) setErrores((prev) => ({ ...prev, [campo]: undefined }));
+    setErrores((prev) => {
+      const nuevos = { ...prev };
+      camposCambiados.forEach(c => delete nuevos[c]);
+      return nuevos;
     });
   };
 
   const handleDireccionChange = (campo: keyof Direccion, valor: string | number) => {
     const nuevaDireccion = { ...formData.direcciones[0], [campo]: valor };
     setFormData({ ...formData, direcciones: [nuevaDireccion] });
-    if (campo === 'altura' && errores.altura) {
-      setErrores((prev) => ({ ...prev, altura: undefined }));
-    }
+    // Limpieza específica para altura
+    if (campo === 'altura') setErrores((prev) => ({ ...prev, altura: undefined }));
   };
 
   const mapearErroresBackend = (erroresBackend: ErroresBackend): ErroresForm => ({
-    cuit:    erroresBackend.cuit?.[0],
-    nombre:  erroresBackend.nombre_proveedor?.[0],
-    email:   erroresBackend.correo_proveedor?.[0],
-    telefono:erroresBackend.telefono?.[0],
+    cuit: erroresBackend.cuit?.[0],
+    nombre: erroresBackend.nombre_proveedor?.[0],
+    email: erroresBackend.correo_proveedor?.[0],
+    telefono: erroresBackend.telefono?.[0],
     general: erroresBackend.general,
   });
 
@@ -75,9 +76,9 @@ export const ModalFormularioProveedor = ({
     e.preventDefault();
     const nuevosErrores: ErroresForm = {};
     
-    if (formData.cuit.length !== 11) nuevosErrores.cuit = 'El CUIT debe tener exactamente 11 dígitos.';
+    if (formData.cuit.length !== 11) nuevosErrores.cuit = 'El CUIT debe tener 11 dígitos.';
     if (formData.telefono.length > 13 || formData.telefono.length < 11) nuevosErrores.telefono = 'Teléfono inválido (11-13 dígitos).';
-    if (!formData.direcciones[0].altura || Number(formData.direcciones[0].altura) <= 0) nuevosErrores.altura = 'Altura inválida.';
+    if (!formData.direcciones[0]?.altura || Number(formData.direcciones[0].altura) <= 0) nuevosErrores.altura = 'Altura inválida.';
 
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);

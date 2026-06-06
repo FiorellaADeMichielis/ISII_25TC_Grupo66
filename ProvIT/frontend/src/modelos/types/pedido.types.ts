@@ -82,8 +82,8 @@ export interface PedidoFormData {
 }
 
 export interface ErroresFormPedido {
-  proveedor?: string;
-  fechas?: string;
-  detalles?: string;
   general?: string;
+  proveedor?: string;
+  fechaEntregaEsperada?: string;
+  detalles?: string;
 }
