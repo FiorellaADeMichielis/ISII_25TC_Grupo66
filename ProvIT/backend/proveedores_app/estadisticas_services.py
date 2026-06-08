@@ -1,12 +1,10 @@
 """
 ProvIT - estadisticas_services.py
-Módulo: proveedores_app
-Descripción: Capa de servicio para el módulo de Estadísticas - Análisis de Compras Inteligente.
+Descripción: Capa de servicio para el módulo de Estadísticas - Caso de Uso de Análisis de Compras Inteligente.
 
 Patrón de Diseño: ESTRATEGIA (Strategy)
     Permite intercambiar dinámicamente el algoritmo de cálculo de escala
-    según la variable evaluada (Precio, Calidad o Velocidad), sin modificar
-    el código que los consume.
+    según la variable evaluada (Precio, Calidad o Velocidad), sin modificar el código que los consume.
 
 Jerarquía del patrón:
     EstrategiaCalculoEscala   ← Interfaz abstracta (contrato)
@@ -15,10 +13,10 @@ Jerarquía del patrón:
     └── EstrategiaVelocidad   ← Escala por días de retraso (puntualidad)
     ContextoCalculoEscala     ← Ejecuta la estrategia inyectada
 
-Funciones expuestas (nomenclatura del proyecto - verboAdjetivo):
+Métodos principales expuestos (nomenclatura del proyecto - verboAdjetivo):
     - verFiltrosAnalisis()
     - verAnalisisProveedor()
-    - verTopProveedores()
+    - verTopProveedores() OJO: este no llegamos a aplicar aún
     - calcularEvolucionAnual()
 """
 
@@ -46,8 +44,7 @@ from .models import (
 class EstrategiaCalculoEscala(ABC):
     """
     Interfaz base del Patrón Estrategia.
-    Define el contrato que todas las estrategias de cálculo deben cumplir.
-    Todas las escalas resultantes están en el rango 1 a 5.
+    Define el contrato que todas las estrategias de cálculo deben cumplir. Todas las escalas están en rango 1 a 5.
     """
     ESCALA_MIN = 1
     ESCALA_MAX = 5
@@ -72,18 +69,6 @@ class EstrategiaCalculoEscala(ABC):
 class EstrategiaPrecio(EstrategiaCalculoEscala):
     """
     Estrategia concreta: Cálculo de escala de PRECIO.
-
-    Evalúa la posición del precio promedio del proveedor dentro del rango
-    global (min-max) del mismo producto en el período analizado.
-
-    Escala resultante:
-        5 → Precio más bajo/competitivo del mercado
-        3 → Precio en la mitad del rango
-        1 → Precio más alto del mercado
-
-    Nota: No se evalúa el precio en términos absolutos sino relativos
-    al rango del mercado, evitando que quien vende más caro siempre
-    sea clasificado como peor sin contexto.
     """
     def calcularEscala(self, datos: dict) -> Optional[float]:
         precio_promedio   = datos.get('precio_promedio')
@@ -93,11 +78,15 @@ class EstrategiaPrecio(EstrategiaCalculoEscala):
         if precio_promedio is None or precio_min_global is None or precio_max_global is None:
             return None
 
-        # Rango igual: todos los proveedores tienen el mismo precio → escala neutral
+        # Forzamos la conversión de todos los valores a float xq sino teníamos problemas en los cálculos por distintos tipos de datos.
+        precio_promedio = float(precio_promedio)
+        precio_min_global = float(precio_min_global)
+        precio_max_global = float(precio_max_global)
+
+        # Usamos un valor por defecto con Rango igual (todos los proveedores tienen el mismo precio o escala neutra)
         if precio_max_global == precio_min_global:
             return 3.0
-
-        # Normalizar: 0.0 = más caro (peor), 1.0 = más barato (mejor)
+        # Normalizar: 0.0 = más caro y 1.0 = más barato
         posicion = (precio_max_global - precio_promedio) / (precio_max_global - precio_min_global)
 
         # Convertir a escala 1-5
@@ -162,8 +151,7 @@ class ContextoCalculoEscala:
     """
     Contexto del Patrón Estrategia.
     Recibe una estrategia inyectada y la ejecuta.
-    Permite cambiar la estrategia en tiempo de ejecución sin
-    modificar el código cliente.
+    Permite cambiar la estrategia en tiempo de ejecución sin modificar el código cliente.
     """
     def __init__(self, estrategia: EstrategiaCalculoEscala):
         self._estrategia = estrategia
@@ -199,7 +187,8 @@ def obtenerEstrategiaPorVariable(variable: str) -> EstrategiaCalculoEscala:
 
 
 # =============================================================================
-# HELPERS INTERNOS
+# Métodos INTERNOS de ayuda para otros cálculos necesarios en el análisis
+# y Métodos para generar la Recomendación según los resultados de las variables de la escala
 # =============================================================================
 
 def _calcularDiasRetraso(pedido: Pedido) -> Optional[float]:
@@ -320,14 +309,46 @@ def _calcularEscalasPorPeriodo(
     contexto = ContextoCalculoEscala(EstrategiaCalidad())
 
     # ── Calidad ───────────────────────────────────────────────────────────────
-    calidad_qs = ProveedorProducto.objects.filter(
-        fk_proveedor_id=proveedor_id,
-        ultima_actualizacion__range=(fecha_inicio, fecha_fin),
+   # ── Promedio Ponderado por volumen de compra del periodo) ──────────
+    
+    # 1. Buscamos qué se compró exactamente en este año
+    detalles_periodo = DetallePedido.objects.filter(
+        fk_pedido__fk_proveedor_id=proveedor_id,
+        fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin)
     )
     if producto_id:
-        calidad_qs = calidad_qs.filter(fk_producto_id=producto_id)
+        detalles_periodo = detalles_periodo.filter(fk_producto_id=producto_id)
 
-    calidad_prom = calidad_qs.aggregate(avg=Avg('calidad'))['avg']
+    # 2. Traemos el catálogo actual del proveedor y lo armamos como un diccionario rápido {id_producto: calidad}
+    catalogo_calidad = dict(
+        ProveedorProducto.objects.filter(fk_proveedor_id=proveedor_id)
+        .values_list('fk_producto_id', 'calidad')
+    )
+
+    suma_calidad = 0
+    total_productos = 0
+
+    # 3. Cruzamos la información en memoria (Equivalente al JOIN propuesto)
+    for detalle in detalles_periodo:
+        # Obtenemos la calidad del catálogo para este producto (Fallback de 3.0 si por algún motivo no existe)
+        calidad_producto = catalogo_calidad.get(detalle.fk_producto_id, 3.0)
+        
+        # Ponderamos: (calidad * cantidad comprada)
+        suma_calidad += (calidad_producto * detalle.cantidad_producto)
+        total_productos += detalle.cantidad_producto
+
+    # 4. Calculamos el promedio final para el gráfico
+    if total_productos > 0:
+        calidad_prom = suma_calidad / total_productos
+    else:
+        # Fallback de seguridad: Si no compraron nada en este año, 
+        # devolvemos el promedio general de su catálogo actual para que la línea no caiga a 0.
+        cat_qs = ProveedorProducto.objects.filter(fk_proveedor_id=proveedor_id)
+        if producto_id:
+            cat_qs = cat_qs.filter(fk_producto_id=producto_id)
+        cal_agregada = cat_qs.aggregate(avg=Avg('calidad'))['avg']
+        calidad_prom = float(cal_agregada) if cal_agregada is not None else 3.0
+
     contexto.cambiarEstrategia(EstrategiaCalidad())
     escala_calidad = contexto.ejecutarCalculo({'calidad_promedio': calidad_prom})
 
@@ -432,7 +453,7 @@ def verAnalisisProveedor(
     producto_id: Optional[int] = None,
 ) -> dict:
     """
-    Caso de Uso: Análisis de Compra — Vista individual de un Proveedor.
+    Caso de Uso: Análisis de Compra de un Proveedor.
 
     Calcula las escalas de Precio, Calidad y Velocidad para el proveedor
     (y opcionalmente un producto específico) en el período indicado.
@@ -570,10 +591,9 @@ def calcularEvolucionMensual(
         })
     return resultado
 def calcularEvolucion(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global):
-    # --- AGREGA ESTO ---
+    
     print(f"DEBUG: Inicio: {fecha_inicio}, Fin: {fecha_fin}")
     print(f"DEBUG: ¿Son iguales los años?: {fecha_inicio.year == fecha_fin.year}")
-    # -------------------
 
     if fecha_inicio.year == fecha_fin.year:
         print("DEBUG: Entrando en lógica MENSUAL")
@@ -583,6 +603,7 @@ def calcularEvolucion(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_
     return calcularEvolucionAnual(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global)
 # =============================================================================
 # SERVICIO: TOP 3 PROVEEDORES / PRODUCTOS
+#Falta su visualización- Ver si llegamos a agregar o no
 # =============================================================================
 
 def verTopProveedores(
