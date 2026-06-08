@@ -8,7 +8,7 @@ interface ModalVistaProps {
   isOpen: boolean;
   onClose: () => void;
   formData: Omit<Proveedor, 'id'>;
-  errores: ErroresForm; // Aquí llegan los errores del useForm
+  errores: ErroresForm & { calle?: string }; // Actualizado para soportar calle
   isSubmitting: boolean;
   isEdicion: boolean;
   puedeEditarEstado: boolean;
@@ -23,7 +23,6 @@ export const ModalProveedorVista = ({
 }: ModalVistaProps) => {
   if (!isOpen) return null;
 
-  // Clase utilitaria para evitar repetir lógica en cada input
   const inputClass = (error?: string) => 
     `w-full px-4 py-2 border rounded-lg outline-none transition-colors 
     ${error ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200' : 'border-slate-300 focus:ring-2 focus:ring-blue-500'}`;
@@ -32,7 +31,6 @@ export const ModalProveedorVista = ({
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-xl overflow-hidden max-h-[90vh] flex flex-col">
         
-        {/* Cabecera */}
         <div className="flex justify-between items-center p-6 border-b border-slate-100 shrink-0">
           <div>
             <h2 className="text-xl font-bold text-slate-800">
@@ -44,11 +42,10 @@ export const ModalProveedorVista = ({
           </button>
         </div>
 
-        {/* Formulario */}
         <div className="overflow-y-auto p-6">
-          <form id="form-proveedor" onSubmit={onSubmit} className="space-y-4">
+          <form id="form-proveedor" onSubmit={onSubmit} className="space-y-4" noValidate> 
+            {/* Agregamos noValidate para asegurar que el navegador no bloquee el submit */}
             
-            {/* Error general */}
             {errores.general && (
               <div className="bg-red-50 border border-red-200 text-red-600 text-sm p-3 rounded-lg font-medium">
                 {errores.general}
@@ -58,11 +55,11 @@ export const ModalProveedorVista = ({
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-4">
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">Datos de Contacto</h3>
 
-              {/* Nombre */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
                 <input
-                  type="text" required
+                  type="text" 
+                  // Quitamos el 'required' de todos los inputs
                   className={inputClass(errores.nombre)}
                   value={formData.nombre}
                   onChange={(e) => onChangeData({ nombre: e.target.value })}
@@ -70,11 +67,10 @@ export const ModalProveedorVista = ({
                 {errores.nombre && <p className="text-xs text-red-500 mt-1 font-medium">{errores.nombre}</p>}
               </div>
 
-              {/* CUIT */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">CUIT</label>
                 <input
-                  type="text" inputMode="numeric" required
+                  type="text" inputMode="numeric" 
                   placeholder="Ej: 30123456789 (Sin guiones)"
                   maxLength={11}
                   className={inputClass(errores.cuit)}
@@ -85,11 +81,10 @@ export const ModalProveedorVista = ({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                   <input
-                    type="email" required
+                    type="email" 
                     className={inputClass(errores.email)}
                     value={formData.email}
                     onChange={(e) => onChangeData({ email: e.target.value })}
@@ -97,11 +92,10 @@ export const ModalProveedorVista = ({
                   {errores.email && <p className="text-xs text-red-500 mt-1 font-medium">{errores.email}</p>}
                 </div>
 
-                {/* Teléfono */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
                   <input
-                    type="text" inputMode="numeric" required
+                    type="text" inputMode="numeric" 
                     placeholder="Ej: 5491145678900"
                     maxLength={13}
                     className={inputClass(errores.telefono)}
@@ -113,23 +107,23 @@ export const ModalProveedorVista = ({
               </div>
             </div>
 
-            {/* Dirección */}
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 space-y-4">
               <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">Dirección Comercial</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-slate-700 mb-1">Calle</label>
                   <input
-                    type="text" required
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    type="text" 
+                    className={inputClass(errores.calle)} // Implementado el inputClass y renderizado de error para Calle
                     value={formData.direcciones[0]?.calle || ''}
                     onChange={(e) => onChangeDireccion('calle', e.target.value)}
                   />
+                  {errores.calle && <p className="text-xs text-red-500 mt-1 font-medium">{errores.calle}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Altura</label>
                   <input
-                    type="number" required
+                    type="number" 
                     min="1"
                     className={inputClass(errores.altura)}
                     value={formData.direcciones[0]?.altura || ''}
@@ -147,7 +141,6 @@ export const ModalProveedorVista = ({
           </form>
         </div>
 
-        {/* Botones */}
         <div className="flex justify-end gap-3 p-6 border-t border-slate-100 shrink-0 bg-white">
           <button type="button" onClick={onClose} disabled={isSubmitting} className="px-5 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-lg transition-colors">
             Cancelar

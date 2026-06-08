@@ -24,7 +24,7 @@ export const ModalFormularioProveedor = ({
 }: ModalFormularioProveedorProps) => {
   const [formData, setFormData] = useState<Omit<Proveedor, 'id'>>(formInicial);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errores, setErrores] = useState<ErroresForm>({});
+  const [errores, setErrores] = useState<ErroresForm & { calle?: string }>({}); // Extendimos localmente para incluir 'calle'
 
   const puedeEditarEstado = rolUsuario === 2 || rolUsuario === 3;
 
@@ -48,7 +48,6 @@ export const ModalFormularioProveedor = ({
 
   const handleChangeData = (datosNuevos: Partial<Omit<Proveedor, 'id'>>) => {
     setFormData((prev) => ({ ...prev, ...datosNuevos }));
-    // Limpieza dinámica de errores al cambiar el valor
     const camposCambiados = Object.keys(datosNuevos) as Array<keyof ErroresForm>;
     setErrores((prev) => {
       const nuevos = { ...prev };
@@ -60,8 +59,10 @@ export const ModalFormularioProveedor = ({
   const handleDireccionChange = (campo: keyof Direccion, valor: string | number) => {
     const nuevaDireccion = { ...formData.direcciones[0], [campo]: valor };
     setFormData({ ...formData, direcciones: [nuevaDireccion] });
-    // Limpieza específica para altura
+    
+    // Limpieza dinámica de errores de dirección
     if (campo === 'altura') setErrores((prev) => ({ ...prev, altura: undefined }));
+    if (campo === 'calle') setErrores((prev) => ({ ...prev, calle: undefined }));
   };
 
   const mapearErroresBackend = (erroresBackend: ErroresBackend): ErroresForm => ({
@@ -74,17 +75,49 @@ export const ModalFormularioProveedor = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const nuevosErrores: ErroresForm = {};
+    const nuevosErrores: ErroresForm & { calle?: string } = {};
     
-    if (formData.cuit.length !== 11) nuevosErrores.cuit = 'El CUIT debe tener 11 dígitos.';
-    if (formData.telefono.length > 13 || formData.telefono.length < 11) nuevosErrores.telefono = 'Teléfono inválido (11-13 dígitos).';
-    if (!formData.direcciones[0]?.altura || Number(formData.direcciones[0].altura) <= 0) nuevosErrores.altura = 'Altura inválida.';
+    // Validaciones de Vacío (CP Anterior)
+    if (!formData.nombre.trim()) nuevosErrores.nombre = 'El campo nombre no puede estar vacío';
+    if (!formData.email.trim()) nuevosErrores.email = 'El campo Correo electrónico no puede estar vacío';
+    if (!formData.direcciones[0]?.calle.trim()) nuevosErrores.calle = 'El campo Calle no puede estar vacío';
 
-    if (Object.keys(nuevosErrores).length > 0) {
-      setErrores(nuevosErrores);
-      return;
+    // === VALIDACIONES DE LONGITUD (NUEVO CP) ===
+
+    // Validación CUIT
+    if (!formData.cuit.trim()) {
+      nuevosErrores.cuit = 'El campo CUIT no puede estar vacío';
+    } else if (formData.cuit.length !== 11) {
+      // Si ingresa "2744", salta este error
+      nuevosErrores.cuit = 'El CUIT debe tener 11 dígitos.';
     }
 
+    // Validación Teléfono
+    if (!formData.telefono.trim()) {
+      nuevosErrores.telefono = 'El campo Teléfono no puede estar vacío.';
+    } else if (formData.telefono.length > 13 || formData.telefono.length < 11) {
+      // Si ingresa "100", salta este error
+      nuevosErrores.telefono = 'Teléfono inválido (11-13 dígitos).';
+    }
+
+    // Validación Altura
+    if (!formData.direcciones[0]?.altura) {
+      nuevosErrores.altura = 'El campo Altura no puede estar vacío';
+    } else {
+      const alturaNum = Number(formData.direcciones[0].altura);
+      // Si ingresa un número negativo, 0, o un número irreal como "150000", salta este error
+      if (alturaNum <= 0 || alturaNum > 99999) {
+        nuevosErrores.altura = 'Altura inválida';
+      }
+    }
+
+    // Cancelar la operación si el objeto nuevosErrores tiene algo adentro
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrores(nuevosErrores);
+      return; // CORTA LA EJECUCIÓN AQUÍ (Cancela la operación)
+    }
+
+    // Si pasa todas las validaciones, limpia errores y guarda
     setErrores({});
     setIsSubmitting(true);
     const resultado = await onGuardar(formData);
@@ -96,7 +129,6 @@ export const ModalFormularioProveedor = ({
       setErrores(mapearErroresBackend(resultado.errores));
     }
   };
-
   return (
     <ModalProveedorVista
       isOpen={isOpen}

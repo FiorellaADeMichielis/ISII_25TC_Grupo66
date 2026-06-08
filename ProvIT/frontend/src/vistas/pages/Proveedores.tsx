@@ -1,11 +1,10 @@
-// Proveedores.tsx
-import { Plus, Edit2, Trash2, Building2 } from "lucide-react";
+import { Plus, Edit2, Building2 } from "lucide-react";
 import { useProveedores } from "../../modelos-vista/hooks/useProveedores";
 import { ModalFormularioProveedor } from "../components/organismos/ModalProveedores";
 
 export const Proveedores = () => {
-  // Consumimos TODO desde el hook personalizado, que maneja toda la lógica de proveedores, incluyendo el estado del modal
-  // y el proveedor en edición
+  // Consumimos TODO desde el hook personalizado, que maneja toda la lógica de proveedores, 
+  // incluyendo el estado del modal y el proveedor en edición
   const {
     proveedores,
     loading,
@@ -68,14 +67,14 @@ export const Proveedores = () => {
             <tbody className="divide-y divide-slate-200">
               {loading && proveedores.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     Cargando proveedores...
                   </td>
                 </tr>
               )}
               {!loading && proveedores.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     No hay proveedores registrados.
                   </td>
                 </tr>
@@ -107,20 +106,27 @@ export const Proveedores = () => {
                   <td className="px-6 py-4 text-right space-x-2">
                     <button
                       onClick={() => abrirModalEdicion(prov)}
-                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors align-middle"
+                      title="Editar proveedor"
                     >
                       <Edit2 size={18} />
                     </button>
+                    
+                    {/* === TOGGLE DE ESTADO === */}
                     <button
                       onClick={() => handleCambiarEstado(prov)}
                       disabled={!puedeEliminar}
-                      className={`p-2 rounded-lg transition-colors ${
-                        puedeEliminar
-                          ? "text-slate-400 hover:text-red-600 hover:bg-red-50"
-                          : "text-slate-300 cursor-not-allowed"
-                      }`}
+                      title={!puedeEliminar ? 'No tienes permisos para cambiar el estado' : (prov.estado === 'Activo' ? 'Desactivar proveedor' : 'Activar proveedor')}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ml-2 align-middle ${
+                        prov.estado === "Activo" ? "bg-emerald-500" : "bg-slate-300"
+                      } ${!puedeEliminar ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-90"}`}
                     >
-                      <Trash2 size={18} />
+                      <span className="sr-only">Cambiar estado</span>
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          prov.estado === "Activo" ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
                     </button>
                   </td>
                 </tr>
