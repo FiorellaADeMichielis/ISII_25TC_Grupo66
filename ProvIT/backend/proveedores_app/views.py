@@ -37,7 +37,7 @@ from rest_framework import generics
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from datetime import date
-from .estadisticas_services import (verFiltrosAnalisis,verAnalisisProveedor, verTopProveedores,
+from .estadisticas_services import (verFiltrosAnalisis,verAnalisisProveedor,
                 )
 
 # ===========================================================================
@@ -308,9 +308,9 @@ class EstadisticasAnalisisProveedorView(APIView):
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
  
- 
-class EstadisticasTopProveedoresView(APIView):
     """
+    class EstadisticasTopProveedoresView(APIView):
+   
     GET /api/estadisticas/top-proveedores/
  
     Caso de Uso: Análisis de Compra — Ranking Top N Mejores/Peores.
@@ -349,7 +349,7 @@ class EstadisticasTopProveedoresView(APIView):
     }
  
     Respuesta 400: Parámetros inválidos o faltantes.
-    """
+    
     permission_classes = [IsAuthenticated]
  
     VARIABLES_VALIDAS = {'precio', 'calidad', 'velocidad', 'todos'}
@@ -427,7 +427,7 @@ class EstadisticasTopProveedoresView(APIView):
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         
-
+"""
 # ===========================================================================
 # 7. CONTROLADORES DEL MÓDULO PEDIDOS
 # ===========================================================================
