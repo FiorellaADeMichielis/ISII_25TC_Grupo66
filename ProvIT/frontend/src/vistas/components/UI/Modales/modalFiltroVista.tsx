@@ -8,7 +8,7 @@ export interface ModalFiltrosVistaProps {
   fechaInicio: string;
   fechaFin: string;
   isLoading: boolean;
-  errors?: { elemento?: string; fechaInicio?: string; fechaFin?: string }; // <--- AGREGADO
+  errors?: { elemento?: string; fechaInicio?: string; fechaFin?: string };
   onCambiarTipo: (tipo: 'proveedor' | 'producto') => void;
   onChangeElemento: (id: number | '') => void;
   onChangeFechaInicio: (fecha: string) => void;
@@ -24,7 +24,7 @@ export const ModalFiltrosVista = ({
   fechaInicio,
   fechaFin,
   isLoading,
-  errors, // <--- RECIBIDO
+  errors,
   onCambiarTipo,
   onChangeElemento,
   onChangeFechaInicio,
@@ -50,6 +50,7 @@ export const ModalFiltrosVista = ({
         
         <form onSubmit={onSubmit} className="space-y-6" noValidate>
           
+          {/* SELECTOR DE TIPO DE BÚSQUEDA */}
           <div className="flex flex-col items-center">
             <div className="relative flex w-full bg-gray-100 rounded-lg p-1 border border-gray-200 shadow-inner">
               <div 
@@ -78,60 +79,79 @@ export const ModalFiltrosVista = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Seleccionar {tipoBusqueda === 'proveedor' ? 'Proveedor' : 'Producto'} *
-            </label>
-            <select 
-              className={`w-full border p-2.5 rounded-lg outline-none transition-colors ${
-                errors?.elemento ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
-              }`}
-              value={elementoSeleccionado}
-              onChange={(e) => onChangeElemento(e.target.value === '' ? '' : Number(e.target.value))}
-            >
-              <option value="" disabled>Seleccione una opción de la lista...</option>
-              {opcionesDropdown.map((opcion) => (
-                <option key={opcion.value} value={opcion.value}>
-                  {opcion.label}
-                </option>
-              ))}
-            </select>
-            {errors?.elemento && <p className="text-red-500 text-xs mt-1">{errors.elemento}</p>}
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Rango de fechas (Opcional)</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Desde</label>
-                <input 
-                  type="date" 
-                  className={`w-full border p-2 rounded-lg outline-none ${
-                    errors?.fechaInicio ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
-                  }`}
-                  value={fechaInicio}
-                  onChange={(e) => onChangeFechaInicio(e.target.value)}
-                />
-                {errors?.fechaInicio && <p className="text-red-500 text-xs mt-1">{errors.fechaInicio}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Hasta</label>
-                <input 
-                  type="date" 
-                  className={`w-full border p-2 rounded-lg outline-none ${
-                    errors?.fechaFin ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
-                  }`}
-                  value={fechaFin}
-                  onChange={(e) => onChangeFechaFin(e.target.value)}
-                />
-                {errors?.fechaFin && <p className="text-red-500 text-xs mt-1">{errors.fechaFin}</p>}
-              </div>
+          {/* RENDERIZADO CONDICIONAL DEL CUERPO DEL MODAL */}
+          {tipoBusqueda === 'producto' ? (
+            
+            // --- ESTADO: FEATURE EN DESARROLLO ---
+            <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl my-4">
+              <span className="text-5xl mb-4">🚧</span>
+              <h4 className="text-lg font-bold text-gray-700">en Desarrollo</h4>
+              <p className="text-sm text-gray-500 mt-2 max-w-sm">
+                El análisis comparativo de rendimiento por producto estará disponible en la próxima actualización.
+              </p>
             </div>
-            <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
-              <span className="font-bold">ℹ️ Info:</span> Si no especificás fechas, se analizará todo el historial.
-            </p>
-          </div>
 
+          ) : (
+
+            // --- ESTADO: FORMULARIO NORMAL (PROVEEDOR) ---
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Seleccionar Proveedor *
+                </label>
+                <select 
+                  className={`w-full border p-2.5 rounded-lg outline-none transition-colors ${
+                    errors?.elemento ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                  }`}
+                  value={elementoSeleccionado}
+                  onChange={(e) => onChangeElemento(e.target.value === '' ? '' : Number(e.target.value))}
+                >
+                  <option value="" disabled>Seleccione una opción de la lista...</option>
+                  {opcionesDropdown.map((opcion) => (
+                    <option key={opcion.value} value={opcion.value}>
+                      {opcion.label}
+                    </option>
+                  ))}
+                </select>
+                {errors?.elemento && <p className="text-red-500 text-xs mt-1">{errors.elemento}</p>}
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Rango de fechas (Opcional)</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Desde</label>
+                    <input 
+                      type="date" 
+                      className={`w-full border p-2 rounded-lg outline-none ${
+                        errors?.fechaInicio ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                      }`}
+                      value={fechaInicio}
+                      onChange={(e) => onChangeFechaInicio(e.target.value)}
+                    />
+                    {errors?.fechaInicio && <p className="text-red-500 text-xs mt-1">{errors.fechaInicio}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Hasta</label>
+                    <input 
+                      type="date" 
+                      className={`w-full border p-2 rounded-lg outline-none ${
+                        errors?.fechaFin ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500' : 'border-gray-300 focus:ring-2 focus:ring-blue-500'
+                      }`}
+                      value={fechaFin}
+                      onChange={(e) => onChangeFechaFin(e.target.value)}
+                    />
+                    {errors?.fechaFin && <p className="text-red-500 text-xs mt-1">{errors.fechaFin}</p>}
+                  </div>
+                </div>
+                <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                  <span className="font-bold">Info:</span> Es necesario completar ambos campos de fechas
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* BOTONES DE ACCIÓN */}
           <div className="flex justify-end gap-3 pt-2">
             <button 
               type="button" 
@@ -140,17 +160,21 @@ export const ModalFiltrosVista = ({
             >
               Cancelar
             </button>
-            <button 
-              type="submit" 
-              disabled={isLoading}
-              className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex justify-center items-center min-w-[140px]"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                'Analizar Datos'
-              )}
-            </button>
+            
+            {/* Ocultamos el botón submit si estamos en la vista de producto */}
+            {tipoBusqueda === 'proveedor' && (
+              <button 
+                type="submit" 
+                disabled={isLoading}
+                className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex justify-center items-center min-w-[140px]"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  'Analizar Datos'
+                )}
+              </button>
+            )}
           </div>
 
         </form>
