@@ -920,6 +920,7 @@ SET IDENTITY_INSERT [dbo].[Usuario] ON
 
 INSERT [dbo].[Usuario] ([ID_Usuario], [Nombre_Usuario], [Apellido_Usuario], [DNI], [Correo_Usuario], [Contrasena], [Estado], [ID_Rol]) VALUES (1, N'Administrador', N'Provit', 11111111, N'admin@provit.com', N'pbkdf2_sha256$1200000$T6m1lD3sBiMdmgum0iQFvc$euM23ODV2C7jpVfkNgq60R55Iso9wWyhRqtzUaSAoM0=', 1, 2)
 INSERT [dbo].[Usuario] ([ID_Usuario], [Nombre_Usuario], [Apellido_Usuario], [DNI], [Correo_Usuario], [Contrasena], [Estado], [ID_Rol]) VALUES (2, N'Milo Tahiel', N'Antorena', 41281778, N'milotahiel.r@gmail.com', N'pbkdf2_sha256$1200000$bWa46PgZL6PpvUiq7DAw7C$0d7qDkHfoteJWGb7uC61sWI3SQgVU08+kfVKNLJw2Yk=', 1, 1)
+INSERT [dbo].[Usuario] ([ID_Usuario], [Nombre_Usuario], [Apellido_Usuario], [DNI], [Correo_Usuario], [Contrasena], [Estado], [ID_Rol]) VALUES (3, N'operador', N'provit', 44572923, N'operador@provit.com', N'pbkdf2_sha256$1200000$xYStRLNqwMduEIeJ99YV18$niqnGj4SxLSSCXeIIem2bS7H3UDFdE+zlHbU8h/LicQ=', 1, 1)
 SET IDENTITY_INSERT [dbo].[Usuario] OFF
 GO
 SET ANSI_PADDING ON
