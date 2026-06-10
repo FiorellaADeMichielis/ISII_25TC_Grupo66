@@ -188,417 +188,426 @@ def obtenerEstrategiaPorVariable(variable: str) -> EstrategiaCalculoEscala:
 
 
 # =============================================================================
-# Métodos INTERNOS de ayuda para otros cálculos necesarios en el análisis
-# y Métodos para generar la Recomendación según los resultados de las variables de la escala
+# CLASE ServicioAnslisisCompras
+# Contiene Métodos de cálculos y analisis para generar la Recomendación según los resultados de las variables de la escala
 # =============================================================================
 
-def _calcularDiasRetraso(pedido: Pedido) -> Optional[float]:
-    """
-    Calcula los días de diferencia entre la entrega real y la esperada.
-    Positivo = tardío | Negativo = anticipado | 0 = puntual.
-    Retorna None si el pedido no tiene fecha_entrega_real registrada.
-    """
-    if not pedido.fecha_entrega_real or not pedido.fecha_entrega_esperada:
-        return None
-    return (pedido.fecha_entrega_real - pedido.fecha_entrega_esperada).days
+class ServicioAnalisisCompras:
 
-
-def _obtenerDiasRetrasoLista(pedidos_qs) -> list:
-    """
-    Recorre un queryset de pedidos y retorna la lista de días de retraso
-    válidos (excluye pedidos sin fecha_entrega_real).
-    """
-    resultado = []
-    for pedido in pedidos_qs:
-        dias = _calcularDiasRetraso(pedido)
-        if dias is not None:
-            resultado.append(dias)
-    return resultado
-
-
-def _calcularPuntajePonderado(
-    precio: Optional[float],
-    calidad: Optional[float],
-    velocidad: Optional[float],
-    variables: list,
-) -> Optional[float]:
-    """
-    Calcula el puntaje promedio según las variables seleccionadas.
-    Si 'todos' está en la lista, incluye las tres variables por igual.
-    Retorna None si ninguna variable tiene datos disponibles.
-    """
-    if 'todos' in variables:
-        variables = ['precio', 'calidad', 'velocidad']
-
-    mapa = {'precio': precio, 'calidad': calidad, 'velocidad': velocidad}
-    valores = [mapa[v] for v in variables if mapa.get(v) is not None]
-
-    if not valores:
-        return None
-    return round(sum(valores) / len(valores), 2)
-
-
-def _generarRecomendacion(
-    nombre_proveedor: str,
-    escala_precio: Optional[float],
-    escala_calidad: Optional[float],
-    escala_velocidad: Optional[float],
-) -> str:
-    """
-    Genera un texto de recomendación basado en los puntajes del proveedor.
-    Identifica fortalezas y debilidades para orientar la decisión de compra.
-    """
-    puntaje_total = _calcularPuntajePonderado(
-        escala_precio, escala_calidad, escala_velocidad, ['todos']
-    )
-
-    if puntaje_total is None:
-        return (
-            f"No hay datos suficientes en el período seleccionado para "
-            f"evaluar a {nombre_proveedor}."
+    @staticmethod
+    def _generarRecomendacion(
+        nombre_proveedor: str,
+        escala_precio: Optional[float],
+        escala_calidad: Optional[float],
+        escala_velocidad: Optional[float],
+    ) -> str:
+        """
+        Genera un texto de recomendación basado en los puntajes del proveedor.
+        Identifica fortalezas y debilidades para orientar la decisión de compra.
+        """
+        puntaje_total = ServicioAnalisisCompras._calcularPuntajePonderado(
+            escala_precio, escala_calidad, escala_velocidad, ['todos']
         )
 
-    fortalezas  = []
-    debilidades = []
+        if puntaje_total is None:
+            return (
+                f"No hay datos suficientes en el período seleccionado para "
+                f"evaluar a {nombre_proveedor}."
+            )
 
-    if escala_precio is not None:
-        if escala_precio >= 4:
-            fortalezas.append("precio competitivo")
-        elif escala_precio <= 2:
-            debilidades.append("precio elevado respecto al mercado")
+        fortalezas  = []
+        debilidades = []
 
-    if escala_calidad is not None:
-        if escala_calidad >= 4:
-            fortalezas.append("alta calidad de productos")
-        elif escala_calidad <= 2:
-            debilidades.append("calidad por debajo del estándar")
+        if escala_precio is not None:
+            if escala_precio >= 4:
+                fortalezas.append("precio competitivo")
+            elif escala_precio <= 2:
+                debilidades.append("precio elevado respecto al mercado")
 
-    if escala_velocidad is not None:
-        if escala_velocidad >= 4:
-            fortalezas.append("entregas puntuales")
-        elif escala_velocidad <= 2:
-            debilidades.append("demoras frecuentes en las entregas")
+        if escala_calidad is not None:
+            if escala_calidad >= 4:
+                fortalezas.append("alta calidad de productos")
+            elif escala_calidad <= 2:
+                debilidades.append("calidad por debajo del estándar")
 
-    texto = f"El proveedor {nombre_proveedor} obtuvo un puntaje general de {puntaje_total:.1f}/5. "
+        if escala_velocidad is not None:
+            if escala_velocidad >= 4:
+                fortalezas.append("entregas puntuales")
+            elif escala_velocidad <= 2:
+                debilidades.append("demoras frecuentes en las entregas")
 
-    if fortalezas:
-        texto += f"Fortalezas destacadas: {', '.join(fortalezas)}. "
-    if debilidades:
-        texto += f"Áreas a considerar: {', '.join(debilidades)}. "
+        texto = f"El proveedor {nombre_proveedor} obtuvo un puntaje general de {puntaje_total:.1f}/5. "
 
-    if puntaje_total >= 4.0:
-        texto += "Se recomienda como proveedor prioritario para futuras compras."
-    elif puntaje_total >= 3.0:
-        texto += "Es un proveedor aceptable. Se sugiere monitorear su evolución."
-    else:
-        texto += "Se recomienda evaluar proveedores alternativos para este rubro."
+        if fortalezas:
+            texto += f"Fortalezas destacadas: {', '.join(fortalezas)}. "
+        if debilidades:
+            texto += f"Áreas a considerar: {', '.join(debilidades)}. "
 
-    return texto
+        if puntaje_total >= 4.0:
+            texto += "Se recomienda como proveedor prioritario para futuras compras."
+        elif puntaje_total >= 3.0:
+            texto += "Es un proveedor aceptable. Se sugiere monitorear su evolución."
+        else:
+            texto += "Se recomienda evaluar proveedores alternativos para este rubro."
+
+        return texto
 
 
-def _calcularEscalasPorPeriodo(
-    proveedor_id: int,
-    fecha_inicio: date,
-    fecha_fin: date,
-    producto_id: Optional[int],
-    rango_precios_global: dict,
-) -> dict:
-    """
-    Calcula las tres escalas (precio, calidad, velocidad) para un proveedor
-    en un período dado. Reutilizado por verAnalisisProveedor y calcularEvolucionAnual.
-    """
-    contexto = ContextoCalculoEscala(EstrategiaCalidad())
+    @staticmethod
+    def _calcularEscalasPorPeriodo(
+        proveedor_id: int,
+        fecha_inicio: date,
+        fecha_fin: date,
+        producto_id: Optional[int],
+        rango_precios_global: dict,
+    ) -> dict:
+        """
+        Calcula las tres escalas (precio, calidad, velocidad) para un proveedor
+        en un período dado. Reutilizado por verAnalisisProveedor y calcularEvolucionAnual.
+        """
+        contexto = ContextoCalculoEscala(EstrategiaCalidad())
 
-    # ── Calidad ───────────────────────────────────────────────────────────────
-   # ── Promedio Ponderado por volumen de compra del periodo) ──────────
-    
-    # 1. Buscamos qué se compró exactamente en este año
-    detalles_periodo = DetallePedido.objects.filter(
-        fk_pedido__fk_proveedor_id=proveedor_id,
-        fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin)
-    )
-    if producto_id:
-        detalles_periodo = detalles_periodo.filter(fk_producto_id=producto_id)
-
-    # 2. Traemos el catálogo actual del proveedor y lo armamos como un diccionario rápido {id_producto: calidad}
-    catalogo_calidad = dict(
-        ProveedorProducto.objects.filter(fk_proveedor_id=proveedor_id)
-        .values_list('fk_producto_id', 'calidad')
-    )
-
-    suma_calidad = 0
-    total_productos = 0
-
-    # 3. Cruzamos la información en memoria (Equivalente al JOIN propuesto)
-    for detalle in detalles_periodo:
-        # Obtenemos la calidad del catálogo para este producto (Fallback de 3.0 si por algún motivo no existe)
-        calidad_producto = catalogo_calidad.get(detalle.fk_producto_id, 3.0)
+        # ── Calidad ───────────────────────────────────────────────────────────────
+    # ── Promedio Ponderado por volumen de compra del periodo) ──────────
         
-        # Ponderamos: (calidad * cantidad comprada)
-        suma_calidad += (calidad_producto * detalle.cantidad_producto)
-        total_productos += detalle.cantidad_producto
-
-    # 4. Calculamos el promedio final para el gráfico
-    if total_productos > 0:
-        calidad_prom = suma_calidad / total_productos
-    else:
-        # Fallback de seguridad: Si no compraron nada en este año, 
-        # devolvemos el promedio general de su catálogo actual para que la línea no caiga a 0.
-        cat_qs = ProveedorProducto.objects.filter(fk_proveedor_id=proveedor_id)
+        # 1. Buscamos qué se compró exactamente en este año
+        detalles_periodo = DetallePedido.objects.filter(
+            fk_pedido__fk_proveedor_id=proveedor_id,
+            fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin)
+        )
         if producto_id:
-            cat_qs = cat_qs.filter(fk_producto_id=producto_id)
-        cal_agregada = cat_qs.aggregate(avg=Avg('calidad'))['avg']
-        calidad_prom = float(cal_agregada) if cal_agregada is not None else 3.0
+            detalles_periodo = detalles_periodo.filter(fk_producto_id=producto_id)
 
-    contexto.cambiarEstrategia(EstrategiaCalidad())
-    escala_calidad = contexto.ejecutarCalculo({'calidad_promedio': calidad_prom})
+        # 2. Traemos el catálogo actual del proveedor y lo armamos como un diccionario rápido {id_producto: calidad}
+        catalogo_calidad = dict(
+            ProveedorProducto.objects.filter(fk_proveedor_id=proveedor_id)
+            .values_list('fk_producto_id', 'calidad')
+        )
 
-    # ── Precio ────────────────────────────────────────────────────────────────
-    detalles_proveedor = DetallePedido.objects.filter(
-        fk_pedido__fk_proveedor_id=proveedor_id,
-        fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin),
-    )
-    if producto_id:
-        detalles_proveedor = detalles_proveedor.filter(fk_producto_id=producto_id)
+        suma_calidad = 0
+        total_productos = 0
 
-    precio_prom = detalles_proveedor.aggregate(avg=Avg('precio_unitario'))['avg']
-    contexto.cambiarEstrategia(EstrategiaPrecio())
-    escala_precio = contexto.ejecutarCalculo({
-        'precio_promedio':   precio_prom,
-        'precio_min_global': rango_precios_global.get('min_precio'),
-        'precio_max_global': rango_precios_global.get('max_precio'),
-    })
+        # 3. Cruzamos la información en memoria (Equivalente al JOIN propuesto)
+        for detalle in detalles_periodo:
+            # Obtenemos la calidad del catálogo para este producto (Fallback de 3.0 si por algún motivo no existe)
+            calidad_producto = catalogo_calidad.get(detalle.fk_producto_id, 3.0)
+            
+            # Ponderamos: (calidad * cantidad comprada)
+            suma_calidad += (calidad_producto * detalle.cantidad_producto)
+            total_productos += detalle.cantidad_producto
 
-    # ── Velocidad ─────────────────────────────────────────────────────────────
-    pedidos_qs = Pedido.objects.filter(
-        fk_proveedor_id=proveedor_id,
-        fecha_emision__range=(fecha_inicio, fecha_fin),
-        fecha_entrega_real__isnull=False,
-    )
-    if producto_id:
-        pedidos_qs = pedidos_qs.filter(
-            detalles__fk_producto_id=producto_id
-        ).distinct()
+        # 4. Calculamos el promedio final para el gráfico
+        if total_productos > 0:
+            calidad_prom = suma_calidad / total_productos
+        else:
+            # Fallback de seguridad: Si no compraron nada en este año, 
+            # devolvemos el promedio general de su catálogo actual para que la línea no caiga a 0.
+            cat_qs = ProveedorProducto.objects.filter(fk_proveedor_id=proveedor_id)
+            if producto_id:
+                cat_qs = cat_qs.filter(fk_producto_id=producto_id)
+            cal_agregada = cat_qs.aggregate(avg=Avg('calidad'))['avg']
+            calidad_prom = float(cal_agregada) if cal_agregada is not None else 3.0
 
-    dias_lista    = _obtenerDiasRetrasoLista(pedidos_qs)
-    promedio_dias = sum(dias_lista) / len(dias_lista) if dias_lista else None
+        contexto.cambiarEstrategia(EstrategiaCalidad())
+        escala_calidad = contexto.ejecutarCalculo({'calidad_promedio': calidad_prom})
 
-    contexto.cambiarEstrategia(EstrategiaVelocidad())
-    escala_velocidad = contexto.ejecutarCalculo({'promedio_dias_retraso': promedio_dias})
+        # ── Precio ────────────────────────────────────────────────────────────────
+        detalles_proveedor = DetallePedido.objects.filter(
+            fk_pedido__fk_proveedor_id=proveedor_id,
+            fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin),
+        )
+        if producto_id:
+            detalles_proveedor = detalles_proveedor.filter(fk_producto_id=producto_id)
 
-    return {
-        'precio':    escala_precio,
-        'calidad':   escala_calidad,
-        'velocidad': escala_velocidad,
-    }
-
-
-# =============================================================================
-# SERVICIO: FILTROS
-# =============================================================================
-
-def verFiltrosAnalisis() -> dict:
-    """
-    Caso de Uso: Análisis de Compra — Poblar filtros del frontend.
-
-    Retorna los proveedores activos, todos los productos disponibles
-    y un mapa de qué productos provee cada proveedor.
-    El frontend lo usa para construir los dropdowns de filtro.
-    """
-    proveedores = list(
-        Proveedor.objects.filter(estado=True)
-        .values('id_proveedor', 'nombre_proveedor')
-        .order_by('nombre_proveedor')
-    )
-
-    productos = list(
-        Producto.objects.all()
-        .values('id_producto', 'nombre_producto', 'fk_categoria__nombre_categoria')
-        .order_by('nombre_producto')
-    )
-
-    # Mapa de productos por proveedor para los filtros en cascada
-    relaciones = ProveedorProducto.objects.select_related(
-        'fk_proveedor', 'fk_producto'
-    ).values(
-        'fk_proveedor__id_proveedor',
-        'fk_producto__id_producto',
-        'fk_producto__nombre_producto',
-    )
-
-    productos_por_proveedor: dict = {}
-    for rel in relaciones:
-        pid = rel['fk_proveedor__id_proveedor']
-        if pid not in productos_por_proveedor:
-            productos_por_proveedor[pid] = []
-        productos_por_proveedor[pid].append({
-            'id_producto':     rel['fk_producto__id_producto'],
-            'nombre_producto': rel['fk_producto__nombre_producto'],
+        precio_prom = detalles_proveedor.aggregate(avg=Avg('precio_unitario'))['avg']
+        contexto.cambiarEstrategia(EstrategiaPrecio())
+        escala_precio = contexto.ejecutarCalculo({
+            'precio_promedio':   precio_prom,
+            'precio_min_global': rango_precios_global.get('min_precio'),
+            'precio_max_global': rango_precios_global.get('max_precio'),
         })
 
-    return {
-        'proveedores':             proveedores,
-        'productos':               productos,
-        'productos_por_proveedor': productos_por_proveedor,
-    }
+        # ── Velocidad ─────────────────────────────────────────────────────────────
+        pedidos_qs = Pedido.objects.filter(
+            fk_proveedor_id=proveedor_id,
+            fecha_emision__range=(fecha_inicio, fecha_fin),
+            fecha_entrega_real__isnull=False,
+        )
+        if producto_id:
+            pedidos_qs = pedidos_qs.filter(
+                detalles__fk_producto_id=producto_id
+            ).distinct()
+
+        dias_lista    = ServicioAnalisisCompras._obtenerDiasRetrasoLista(pedidos_qs)
+        promedio_dias = sum(dias_lista) / len(dias_lista) if dias_lista else None
+
+        contexto.cambiarEstrategia(EstrategiaVelocidad())
+        escala_velocidad = contexto.ejecutarCalculo({'promedio_dias_retraso': promedio_dias})
+
+        return {
+            'precio':    escala_precio,
+            'calidad':   escala_calidad,
+            'velocidad': escala_velocidad,
+        }
 
 
-# =============================================================================
-# SERVICIO: ANÁLISIS DE UN PROVEEDOR
-# =============================================================================
+    # =============================================================================
+    # SERVICIO: FILTROS
+    # =============================================================================
 
-def verAnalisisProveedor(
-    proveedor_id: int,
-    fecha_inicio: date,
-    fecha_fin: date,
-    producto_id: Optional[int] = None,
-) -> dict:
-    """
-    Caso de Uso: Análisis de Compra de un Proveedor.
+    @staticmethod
+    def verFiltrosAnalisis() -> dict:
+        """
+        Caso de Uso: Análisis de Compra — Poblar filtros del frontend.
 
-    Calcula las escalas de Precio, Calidad y Velocidad para el proveedor
-    (y opcionalmente un producto específico) en el período indicado.
+        Retorna los proveedores activos, todos los productos disponibles
+        y un mapa de qué productos provee cada proveedor.
+        El frontend lo usa para construir los dropdowns de filtro.
+        """
+        proveedores = list(
+            Proveedor.objects.filter(estado=True)
+            .values('id_proveedor', 'nombre_proveedor')
+            .order_by('nombre_proveedor')
+        )
 
-    Parámetros:
-        proveedor_id  (int):  ID del proveedor a analizar.
-        fecha_inicio  (date): Inicio del período de análisis.
-        fecha_fin     (date): Fin del período de análisis.
-        producto_id   (int):  ID del producto a filtrar. None = todos los productos.
+        productos = list(
+            Producto.objects.all()
+            .values('id_producto', 'nombre_producto', 'fk_categoria__nombre_categoria')
+            .order_by('nombre_producto')
+        )
 
-    Retorna datos para:
-        - graficaTorta:  Puntajes globales del período (Precio, Calidad, Velocidad).
-        - graficaLineas: Evolución anual de las escalas dentro del período.
-        - recomendacion: Texto de asesoramiento basado en los puntajes.
+        # Mapa de productos por proveedor para los filtros en cascada
+        relaciones = ProveedorProducto.objects.select_related(
+            'fk_proveedor', 'fk_producto'
+        ).values(
+            'fk_proveedor__id_proveedor',
+            'fk_producto__id_producto',
+            'fk_producto__nombre_producto',
+        )
 
-    Lanza:
-        NotFound (HTTP 404) si el proveedor no existe.
-    """
-    try:
-        proveedor = Proveedor.objects.get(pk=proveedor_id)
-    except Proveedor.DoesNotExist:
-        raise NotFound(detail=f"No se encontró el proveedor con ID {proveedor_id}.")
+        productos_por_proveedor: dict = {}
+        for rel in relaciones:
+            pid = rel['fk_proveedor__id_proveedor']
+            if pid not in productos_por_proveedor:
+                productos_por_proveedor[pid] = []
+            productos_por_proveedor[pid].append({
+                'id_producto':     rel['fk_producto__id_producto'],
+                'nombre_producto': rel['fk_producto__nombre_producto'],
+            })
 
-    # Rango de precios global del período (todos los proveedores del mismo producto)
-    detalles_global = DetallePedido.objects.filter(
-        fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin),
-    )
-    if producto_id:
-        detalles_global = detalles_global.filter(fk_producto_id=producto_id)
+        return {
+            'proveedores':             proveedores,
+            'productos':               productos,
+            'productos_por_proveedor': productos_por_proveedor,
+        }
 
-    rango_global = detalles_global.aggregate(
-        min_precio=Min('precio_unitario'),
-        max_precio=Max('precio_unitario'),
-    )
 
-    # Escalas del período completo (para la gráfica de torta)
-    escalas = _calcularEscalasPorPeriodo(
+    # =============================================================================
+    # SERVICIO: ANÁLISIS DE UN PROVEEDOR
+    # =============================================================================
+    
+    @staticmethod
+    def verAnalisisProveedor(
+        proveedor_id: int,
+        fecha_inicio: date,
+        fecha_fin: date,
+        producto_id: Optional[int] = None,
+    ) -> dict:
+        """
+        Caso de Uso: Consultar Compras Inteligentes.
+
+        Calcula las escalas de Precio, Calidad y Velocidad para el proveedor
+        (y opcionalmente un producto específico) en el período indicado.
+
+        Parámetros:
+            proveedor_id  (int):  ID del proveedor a analizar.
+            fecha_inicio  (date): Inicio del período de análisis.
+            fecha_fin     (date): Fin del período de análisis.
+            producto_id   (int):  ID del producto a filtrar. None = todos los productos.
+
+        Retorna datos para:
+            - graficaTorta:  Puntajes globales del período (Precio, Calidad, Velocidad).
+            - graficaLineas: Evolución anual de las escalas dentro del período.
+            - recomendacion: Texto de asesoramiento basado en los puntajes.
+
+        Lanza:
+            NotFound (HTTP 404) si el proveedor no existe.
+        """
+        try:
+            proveedor = Proveedor.objects.get(pk=proveedor_id)
+        except Proveedor.DoesNotExist:
+            raise NotFound(detail=f"No se encontró el proveedor con ID {proveedor_id}.")
+
+        # Rango de precios global del período (todos los proveedores del mismo producto)
+        detalles_global = DetallePedido.objects.filter(
+            fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin),
+        )
+        if producto_id:
+            detalles_global = detalles_global.filter(fk_producto_id=producto_id)
+
+        rango_global = detalles_global.aggregate(
+            min_precio=Min('precio_unitario'),
+            max_precio=Max('precio_unitario'),
+        )
+
+        # Escalas del período completo (para la gráfica de torta)
+        escalas = ServicioAnalisisCompras._calcularEscalasPorPeriodo(
+            proveedor_id=proveedor_id,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            producto_id=producto_id,
+            rango_precios_global=rango_global,
+        )
+        grafica_lineas = ServicioAnalisisCompras.calcularEvolucion(
         proveedor_id=proveedor_id,
         fecha_inicio=fecha_inicio,
         fecha_fin=fecha_fin,
         producto_id=producto_id,
-        rango_precios_global=rango_global,
-    )
-    grafica_lineas = calcularEvolucion(
-    proveedor_id=proveedor_id,
-    fecha_inicio=fecha_inicio,
-    fecha_fin=fecha_fin,
-    producto_id=producto_id,
-    rango_global=rango_global,
-)
-
-    # Recomendación textual
-    recomendacion = _generarRecomendacion(
-        nombre_proveedor=proveedor.nombre_proveedor,
-        escala_precio=escalas['precio'],
-        escala_calidad=escalas['calidad'],
-        escala_velocidad=escalas['velocidad'],
+        rango_global=rango_global,
     )
 
-    return {
-        'proveedor':     {'id': proveedor.id_proveedor, 'nombre': proveedor.nombre_proveedor},
-        'producto_id':   producto_id,
-        'periodo':       {'desde': str(fecha_inicio), 'hasta': str(fecha_fin)},
-        'graficaTorta':  escalas,
-        'graficaLineas': grafica_lineas,
-        'recomendacion': recomendacion,
-    }
-
-
-def calcularEvolucionAnual(
-    proveedor_id: int,
-    fecha_inicio: date,
-    fecha_fin: date,
-    producto_id: Optional[int] = None,
-    rango_precios_global: Optional[dict] = None,
-) -> list:
-    """
-    Caso de Uso: Análisis de Compra — Evolución anual de un proveedor.
-
-    Calcula las escalas (Precio, Calidad, Velocidad) año por año dentro
-    del período. Alimenta la gráfica de líneas del análisis individual.
-
-    El rango_precios_global se mantiene fijo para todo el período
-    para que los valores sean comparables entre años.
-    """
-    if rango_precios_global is None:
-        rango_precios_global = {'min_precio': None, 'max_precio': None}
-
-    resultado = []
-    for anio in range(fecha_inicio.year, fecha_fin.year + 1):
-        inicio_anio = date(anio, 1, 1)
-        fin_anio    = date(anio, 12, 31)
-
-        escalas_anio = _calcularEscalasPorPeriodo(
-            proveedor_id=proveedor_id,
-            fecha_inicio=inicio_anio,
-            fecha_fin=fin_anio,
-            producto_id=producto_id,
-            rango_precios_global=rango_precios_global,
+        # Recomendación textual
+        recomendacion = ServicioAnalisisCompras._generarRecomendacion(
+            nombre_proveedor=proveedor.nombre_proveedor,
+            escala_precio=escalas['precio'],
+            escala_calidad=escalas['calidad'],
+            escala_velocidad=escalas['velocidad'],
         )
 
-        resultado.append({
-            'anio':      anio,
-            'precio':    escalas_anio['precio'],
-            'calidad':   escalas_anio['calidad'],
-            'velocidad': escalas_anio['velocidad'],
-        })
+        return {
+            'proveedor':     {'id': proveedor.id_proveedor, 'nombre': proveedor.nombre_proveedor},
+            'producto_id':   producto_id,
+            'periodo':       {'desde': str(fecha_inicio), 'hasta': str(fecha_fin)},
+            'graficaTorta':  escalas,
+            'graficaLineas': grafica_lineas,
+            'recomendacion': recomendacion,
+        }
 
-    return resultado
+    @staticmethod
+    def calcularEvolucionAnual(
+        proveedor_id: int,
+        fecha_inicio: date,
+        fecha_fin: date,
+        producto_id: Optional[int] = None,
+        rango_precios_global: Optional[dict] = None,
+    ) -> list:
+        """
+        Calcula las escalas (Precio, Calidad, Velocidad) año por año dentro
+        del período. Alimenta la gráfica de líneas del análisis individual.
 
-def calcularEvolucionMensual(
-    proveedor_id: int, 
-    anio: int, 
-    producto_id: Optional[int], 
-    rango_precios_global: dict
-) -> list:
-    """Calcula la evolución mes a mes para un año específico."""
-    resultado = []
-    
-    for mes in range(1, 13):
-        _, ultimo_dia = calendar.monthrange(anio, mes)
-        inicio_periodo = date(anio, mes, 1)
-        fin_periodo = date(anio, mes, ultimo_dia)
+        El rango_precios_global se mantiene fijo para todo el período
+        para que los valores sean comparables entre años.
+        """
+        if rango_precios_global is None:
+            rango_precios_global = {'min_precio': None, 'max_precio': None}
 
-        escalas = _calcularEscalasPorPeriodo(
-            proveedor_id, inicio_periodo, fin_periodo, producto_id, rango_precios_global
-        )
+        resultado = []
+        for anio in range(fecha_inicio.year, fecha_fin.year + 1):
+            inicio_anio = date(anio, 1, 1)
+            fin_anio    = date(anio, 12, 31)
+
+            escalas_anio = ServicioAnalisisCompras._calcularEscalasPorPeriodo(
+                proveedor_id=proveedor_id,
+                fecha_inicio=inicio_anio,
+                fecha_fin=fin_anio,
+                producto_id=producto_id,
+                rango_precios_global=rango_precios_global,
+            )
+
+            resultado.append({
+                'anio':      anio,
+                'precio':    escalas_anio['precio'],
+                'calidad':   escalas_anio['calidad'],
+                'velocidad': escalas_anio['velocidad'],
+            })
+
+        return resultado
+
+    @staticmethod
+    def calcularEvolucionMensual(
+        proveedor_id: int, 
+        anio: int, 
+        producto_id: Optional[int], 
+        rango_precios_global: dict
+    ) -> list:
+        """Calcula la evolución mes a mes para un año específico."""
+        resultado = []
         
-        # Guarda el mes como identificador clave
-        resultado.append({
-            'mes': mes, 
-            'precio': escalas['precio'],
-            'calidad': escalas['calidad'],
-            'velocidad': escalas['velocidad']
-        })
-    return resultado
-def calcularEvolucion(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global):
-    
-    print(f"DEBUG: Inicio: {fecha_inicio}, Fin: {fecha_fin}")
-    print(f"DEBUG: ¿Son iguales los años?: {fecha_inicio.year == fecha_fin.year}")
+        for mes in range(1, 13):
+            _, ultimo_dia = calendar.monthrange(anio, mes)
+            inicio_periodo = date(anio, mes, 1)
+            fin_periodo = date(anio, mes, ultimo_dia)
 
-    if fecha_inicio.year == fecha_fin.year:
-        print("DEBUG: Entrando en lógica MENSUAL")
-        return calcularEvolucionMensual(proveedor_id, fecha_inicio.year, producto_id, rango_global)
+            escalas = ServicioAnalisisCompras._calcularEscalasPorPeriodo(
+                proveedor_id, inicio_periodo, fin_periodo, producto_id, rango_precios_global
+            )
+            
+            # Guarda el mes como identificador clave
+            resultado.append({
+                'mes': mes, 
+                'precio': escalas['precio'],
+                'calidad': escalas['calidad'],
+                'velocidad': escalas['velocidad']
+            })
+        return resultado
     
-    print("DEBUG: Entrando en lógica ANUAL")
-    return calcularEvolucionAnual(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global)
+    @staticmethod
+    def calcularEvolucion(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global):
+        
+        print(f"DEBUG: Inicio: {fecha_inicio}, Fin: {fecha_fin}")
+        print(f"DEBUG: ¿Son iguales los años?: {fecha_inicio.year == fecha_fin.year}")
+
+        if fecha_inicio.year == fecha_fin.year:
+            print("DEBUG: Entrando en lógica MENSUAL")
+            return ServicioAnalisisCompras.calcularEvolucionMensual(proveedor_id, fecha_inicio.year, producto_id, rango_global)
+        
+        print("DEBUG: Entrando en lógica ANUAL")
+        return ServicioAnalisisCompras.calcularEvolucionAnual(proveedor_id, fecha_inicio, fecha_fin, producto_id, rango_global)
+
+
+    @staticmethod
+    def _calcularDiasRetraso(pedido: Pedido) -> Optional[float]:
+        """
+        Calcula los días de diferencia entre la entrega real y la esperada.
+        Positivo = tardío | Negativo = anticipado | 0 = puntual.
+        Retorna None si el pedido no tiene fecha_entrega_real registrada.
+        """
+        if not pedido.fecha_entrega_real or not pedido.fecha_entrega_esperada:
+            return None
+        return (pedido.fecha_entrega_real - pedido.fecha_entrega_esperada).days
+
+
+    @staticmethod
+    def _obtenerDiasRetrasoLista(pedidos_qs) -> list:
+        """
+        Recorre un queryset de pedidos y retorna la lista de días de retraso
+        válidos (excluye pedidos sin fecha_entrega_real).
+        """
+        resultado = []
+        for pedido in pedidos_qs:
+            dias = ServicioAnalisisCompras._calcularDiasRetraso(pedido)
+            if dias is not None:
+                resultado.append(dias)
+        return resultado
+
+    @staticmethod
+    def _calcularPuntajePonderado(
+        precio: Optional[float],
+        calidad: Optional[float],
+        velocidad: Optional[float],
+        variables: list,
+    ) -> Optional[float]:
+        """
+        Calcula el puntaje promedio según las variables seleccionadas.
+        Si 'todos' está en la lista, incluye las tres variables por igual.
+        Retorna None si ninguna variable tiene datos disponibles.
+        """
+        if 'todos' in variables:
+            variables = ['precio', 'calidad', 'velocidad']
+
+        mapa = {'precio': precio, 'calidad': calidad, 'velocidad': velocidad}
+        valores = [mapa[v] for v in variables if mapa.get(v) is not None]
+
+        if not valores:
+            return None
+        return round(sum(valores) / len(valores), 2)

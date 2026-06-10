@@ -9,9 +9,7 @@ from proveedores_app.estadisticas_services import (
     EstrategiaPrecio,
     EstrategiaCalidad,
     ContextoCalculoEscala,
-    verFiltrosAnalisis,
-    verAnalisisProveedor,
-    calcularEvolucionAnual
+    ServicioAnalisisCompras
 )
 
 class EstadisticasServicesTests(TestCase):
@@ -69,7 +67,7 @@ class EstadisticasServicesTests(TestCase):
         (Visualización del formulario de filtros)
         Probamos verFiltrosAnalisis()
         """
-        resultado = verFiltrosAnalisis()
+        resultado = ServicioAnalisisCompras.verFiltrosAnalisis()
         self.assertIn('proveedores', resultado)
         
         print("\n[CP 1 APROBADO] - Resultado: El sistema despliega correctamente un formulario para agregar filtros para el Análisis.")
@@ -79,7 +77,7 @@ class EstadisticasServicesTests(TestCase):
         CP 2: El administrador desea realizar un Análisis aplicando filtros.
         Probamos verAnalisisProveedor() curso Normal
         """
-        resultado = verAnalisisProveedor(
+        resultado = ServicioAnalisisCompras.verAnalisisProveedor(
             proveedor_id=self.proveedor_valido.id_proveedor,
             fecha_inicio=date(2021, 1, 1),
             fecha_fin=date(2025, 12, 31),
@@ -97,7 +95,7 @@ class EstadisticasServicesTests(TestCase):
         # Al no enviar el parámetro obligatorio (proveedor_id), Python lanza un TypeError.
         # Pero configuramos con un dropDown de Proveedores activos obligatorios para que siempre se elija un proveedor existente.
         with self.assertRaises(TypeError):
-            verAnalisisProveedor(
+            ServicioAnalisisCompras.verAnalisisProveedor(
                 fecha_inicio=date(2021, 1, 1),
                 fecha_fin=date(2025, 12, 31)
             )
@@ -109,7 +107,7 @@ class EstadisticasServicesTests(TestCase):
         CP 4: El administrador desea realizar un Análisis sin el único filtro obligatorio(Producto).
         Probamos verAnalisisProveedor() sin el filtro de Producto que no es obligatorio, debe funcionar bien
         """
-        resultado = verAnalisisProveedor(
+        resultado = ServicioAnalisisCompras.verAnalisisProveedor(
             proveedor_id=self.proveedor_valido.id_proveedor,
             fecha_inicio=date(2021, 1, 1),
             fecha_fin=date(2025, 12, 31),
@@ -133,7 +131,7 @@ class EstadisticasServicesTests(TestCase):
                 raise ValueError("Debe ser posterior al inicio.")
             
             # Si pasa la validación, llama método:
-            verAnalisisProveedor(self.proveedor_valido.id_proveedor, fecha_inicio_erronea, fecha_fin_erronea)
+            ServicioAnalisisCompras.verAnalisisProveedor(self.proveedor_valido.id_proveedor, fecha_inicio_erronea, fecha_fin_erronea)
             
         except ValueError as e:
             self.assertEqual(str(e), "Debe ser posterior al inicio.")
@@ -148,7 +146,7 @@ class EstadisticasServicesTests(TestCase):
         """
         rango_global = {'min_precio': 500, 'max_precio': 1500}
         # CAMINO NORMAL
-        resultado_normal = calcularEvolucionAnual(
+        resultado_normal = ServicioAnalisisCompras.calcularEvolucionAnual(
             proveedor_id=self.proveedor_valido.id_proveedor,
             fecha_inicio=date(2023, 1, 1),
             fecha_fin=date(2024, 12, 31),
@@ -162,7 +160,7 @@ class EstadisticasServicesTests(TestCase):
         
         print("\n[CP 6 APROBADO - NORMAL] - Resultado: Retorna una lista con dos índices (uno para la evaluación agrupada de 2023 y otro para 2024).")
         # CAMINO ALTERNATIVO
-        resultado_invertido = calcularEvolucionAnual(
+        resultado_invertido = ServicioAnalisisCompras.calcularEvolucionAnual(
             proveedor_id=self.proveedor_valido.id_proveedor,
             fecha_inicio=date(2025, 1, 1),
             fecha_fin=date(2021, 12, 31),

@@ -37,8 +37,7 @@ from rest_framework import generics
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from datetime import date
-from .estadisticas_services import (verFiltrosAnalisis,verAnalisisProveedor,
-                )
+from .estadisticas_services import ServicioAnalisisCompras
 
 # ===========================================================================
 # 1. PERMISOS PERSONALIZADOS (Role-Based Access Control)
@@ -214,7 +213,7 @@ class EstadisticasFiltrosView(APIView):
     permission_classes = [IsAuthenticated]
  
     def get(self, request):
-        data = verFiltrosAnalisis()
+        data = ServicioAnalisisCompras.verFiltrosAnalisis()
         return respuestaExitosa(data=data)
  
  
@@ -292,7 +291,7 @@ class EstadisticasAnalisisProveedorView(APIView):
  
         # ── Ejecución del servicio ─────────────────────────────────────────
         try:
-            data = verAnalisisProveedor(
+            data = ServicioAnalisisCompras.verAnalisisProveedor(
                 proveedor_id=proveedor_id,
                 fecha_inicio=fecha_inicio,
                 fecha_fin=fecha_fin,
