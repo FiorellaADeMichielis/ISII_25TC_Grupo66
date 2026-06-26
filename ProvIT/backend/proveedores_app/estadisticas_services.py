@@ -36,7 +36,8 @@ from .models import (
     DetallePedido,
     Pedido,
 )
-
+from django.db import connection
+from django.db.models import Min, Max
 
 # =============================================================================
 # PATRÓN ESTRATEGIA — Interfaz abstracta
@@ -438,17 +439,8 @@ class ServicioAnalisisCompras:
         except Proveedor.DoesNotExist:
             raise NotFound(detail=f"No se encontró el proveedor con ID {proveedor_id}.")
 
-        # Rango de precios global del período (todos los proveedores del mismo producto)
-        detalles_global = DetallePedido.objects.filter(
-            fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin),
-        )
-        if producto_id:
-            detalles_global = detalles_global.filter(fk_producto_id=producto_id)
-
-        rango_global = detalles_global.aggregate(
-            min_precio=Min('precio_unitario'),
-            max_precio=Max('precio_unitario'),
-        )
+       # Rango de precios global del período (Delegado a SQL Server mediante SP)
+        rango_global = ServicioAnalisisCompras._obtener_rango_global_seguro(fecha_inicio, fecha_fin, producto_id)
 
         # Escalas del período completo (para la gráfica de torta)
         escalas = ServicioAnalisisCompras._calcularEscalasPorPeriodo(
@@ -474,6 +466,7 @@ class ServicioAnalisisCompras:
             escala_velocidad=escalas['velocidad'],
         )
 
+        ServicioAnalisisCompras._registrar_auditoria_silenciosa(proveedor_id)
         return {
             'proveedor':     {'id': proveedor.id_proveedor, 'nombre': proveedor.nombre_proveedor},
             'producto_id':   producto_id,
@@ -611,3 +604,50 @@ class ServicioAnalisisCompras:
         if not valores:
             return None
         return round(sum(valores) / len(valores), 2)
+
+    @staticmethod
+    #Procedimiento Almacenado de Consulta: Obtenemos el rango entre fechas para los cálculos desde la BD.
+    def _obtener_rango_global_seguro(fecha_inicio, fecha_fin, producto_id=None) -> dict:
+        """
+        Intenta usar el SP para mayor velocidad. Si falla, usa el ORM de Django como respaldo.
+        """
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "{CALL sp_ObtenerRangoGlobal (@FechaInicio=%s, @FechaFin=%s, @ProductoID=%s)}",
+                    [fecha_inicio, fecha_fin, producto_id]
+                )
+                row = cursor.fetchone()
+                # Si el SP trajo datos correctos, los retornamos
+                if row and row[0] is not None:
+                    return {'min_precio': row[0], 'max_precio': row[1]}
+        
+        except Exception as e:
+            # Capturamos el error sin romper el sistema y mostramos en consola (para asegurarnos que si falla, saber que el error fue del Procedimiento)
+            print(f"SP Falló. Usando Fallback: {e}")
+
+        # FALLBACK (Plan B de seguridad, si falla la consulta por procedimiento, que consulte con ORM como hacía antes) 
+        detalles_global = DetallePedido.objects.filter(fk_pedido__fecha_emision__range=(fecha_inicio, fecha_fin))
+        if producto_id:
+            detalles_global = detalles_global.filter(fk_producto_id=producto_id)
+            
+        return detalles_global.aggregate(min_precio=Min('precio_unitario'), max_precio=Max('precio_unitario'))
+    
+    @staticmethod
+    #Procedimiento Almacenado de Actualización: Si hacemos un análisis de Proveedor, actualizamos la fecha 'ultima_actualizacion' en la tabla ProveedorProducto
+    def _registrar_auditoria_silenciosa(proveedor_id):
+        """
+        Método 'Fire-and-forget'. Intenta registrar la auditoría, pero si falla, no detiene nada.
+        """
+        if not proveedor_id:
+            return
+            
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "{CALL sp_ActualizarAuditoriaCatalogo (@ProveedorID=%s)}",
+                    [proveedor_id]
+                )
+        except Exception as e:
+            print(f" Error silencioso de auditoría en SP: {e}")
+            pass # El "pass" garantiza que el sistema siga funcionando, pero nos informa que no se hizo la actualización para verificar que funcione el procedimiento.
