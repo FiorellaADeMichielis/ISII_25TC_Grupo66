@@ -22,7 +22,7 @@ export function useSidebar() {
   );
 
   function cerrarSesion(): void {
-    if (window.confirm("¿Estás segura de que deseas cerrar sesión?")) {
+    if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
       handleLogout();
       navigate("/login", { replace: true });
     }
