@@ -11,4 +11,4 @@ export const FilaMetrica = ({ etiqueta, valor, subtexto }: FilaMetricaProps) => 
     <span className="text-gray-600">{etiqueta}:</span> 
     <ValorMetrica valor={valor} subtexto={subtexto} />
   </li>
-);
+); 

@@ -6,7 +6,7 @@ interface GrillaKpiProps {
   activos: number;
   inactivos: number;
 }
-
+ 
 // 2. Recibimos las props y las inyectamos en las tarjetas
 export const GrillaKpi = ({ total, activos, inactivos }: GrillaKpiProps) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
