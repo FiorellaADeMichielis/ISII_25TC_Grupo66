@@ -18,7 +18,11 @@ from .views import (
     ProvITLoginView,
     EstadisticasFiltrosView,
     EstadisticasAnalisisProveedorView,
-    ProductoListaView
+    ProductoListaView,
+    UsuarioListarView,
+    UsuarioAgregarView,
+    UsuarioEliminarView,
+    UsuarioEditarRolView
 )
 
 urlpatterns = [
@@ -32,66 +36,37 @@ urlpatterns = [
                 # ==========================================
                 # MÓDULO PROVEEDORES: 
                 # ==========================================
+
                 #Acá tengo verProveedores + agregarProveedor
-                path(
-                    "proveedores/",
-                    ProveedorListaView.as_view(),
-                    name="proveedor-lista",
-                ),
+                path("proveedores/",ProveedorListaView.as_view(),name="proveedor-lista",),
                 # verProveedor + editarProveedor + eliminarProveedor
-                path(
-                    "proveedores/<int:pk>/",
-                    ProveedorDetalleView.as_view(),
-                    name="proveedor-detalle",
-                ),
+                path("proveedores/<int:pk>/", ProveedorDetalleView.as_view(),name="proveedor-detalle",),
                 # reactivarProveedor (Admin)
-                path(
-                    "proveedores/<int:pk>/reactivar/",
-                    ProveedorReactivarView.as_view(),
-                    name="proveedor-reactivar",
-                ),
+                path("proveedores/<int:pk>/reactivar/",ProveedorReactivarView.as_view(), name="proveedor-reactivar",),
                 
                 # ==========================================
                 # MÓDULO ESTADÍSTICAS (Análisis de Compras)
                 # ==========================================
-                path(
-                    "estadisticas",
-                    EstadisticasFiltrosView.as_view(),
-                    name="estadisticas",),
+
+                path("estadisticas",EstadisticasFiltrosView.as_view(), name="estadisticas",),
                 # Obtiene los datos iniciales para llenar los selectores (Filtros)
-                path(
-                    "estadisticas/filtros/", 
-                    EstadisticasFiltrosView.as_view(), 
-                    name="estadisticas-filtros"
-                ),
+                path("estadisticas/filtros/",EstadisticasFiltrosView.as_view(), name="estadisticas-filtros"),
                 # Realiza el análisis de un proveedor o producto específico
-                path(
-                    "estadisticas/analisis-proveedor/", 
-                    EstadisticasAnalisisProveedorView.as_view(), 
-                    name="estadisticas-analisis-proveedor"
-                ),
+                path("estadisticas/analisis-proveedor/",EstadisticasAnalisisProveedorView.as_view(),name="estadisticas-analisis-proveedor"),
+
                 #MÓDULO PEDIDOS
-                path(
-                    "pedidos/", 
-                    PedidoListaView.as_view(), 
-                    name="pedidos-lista"
-                ),
+                path("pedidos/", PedidoListaView.as_view(), name="pedidos-lista"),
                 # Método de clase: registrarEntrega(fecha:Date):void
-                path(
-                    "pedidos/<int:pk>/entrega/", 
-                    PedidoRegistrarEntregaView.as_view(), 
-                    name="pedido-registrar-entrega"
-                ),
+                path("pedidos/<int:pk>/entrega/",  PedidoRegistrarEntregaView.as_view(), name="pedido-registrar-entrega"),
                 # Método de clase: cambiarEstado(nuevoEstado:String):void
-                path(
-                    "pedidos/<int:pk>/estado/", 
-                    PedidoCambiarEstadoView.as_view(), 
-                    name="pedido-cambiar-estado"
-                ),
+                path("pedidos/<int:pk>/estado/", PedidoCambiarEstadoView.as_view(), name="pedido-cambiar-estado"),
+
                 # MÓDULO PRODUCTOS
-                path(
-                    "productos/", 
-                    ProductoListaView.as_view(), 
-                    name="productos-lista"
-                )
+                path("productos/", ProductoListaView.as_view(), name="productos-lista"),
+
+                # MÓDULO GERENTE - GESTION USUARIOS
+                path('api/gerente/usuarios/', UsuarioListarView.as_view(), name='listar_usuarios'),
+                path('api/gerente/usuarios/agregar/', UsuarioAgregarView.as_view(), name='agregar_usuario'),
+                path('api/gerente/usuarios/<int:pk>/eliminar/', UsuarioEliminarView.as_view(), name='eliminar_usuario'),
+                path('api/gerente/usuarios/<int:pk>/editar-rol/', UsuarioEditarRolView.as_view(), name='editar_rol_usuario')
             ]
