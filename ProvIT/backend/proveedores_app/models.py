@@ -514,3 +514,64 @@ class ProveedorProducto(models.Model):
         verbose_name_plural = "Proveedores - Productos"
     def __str__(self):
         return f"{self.fk_proveedor} → {self.fk_producto} (${self.precio_actual})"
+# =============================================================================
+# PROPIEDAD
+# =============================================================================
+class Propiedad(models.Model):
+    """
+    Tabla: Propiedad
+    Almacena los nombres de las propiedades dinámicas de productos sin repetirlas (Ej: Color, Tamaño, Material).
+    """
+    id_propiedad = models.AutoField(
+        primary_key=True, 
+        db_column="ID_Propiedad"
+    )
+    nombre_propiedad = models.CharField(
+        max_length=100, 
+        unique=True,  # ¡Fundamental! Evita cargar "Color" dos veces
+        db_column="nombre_propiedad"
+    )
+
+    class Meta:
+        db_table = "Propiedad"
+        verbose_name = "Propiedad"
+        verbose_name_plural = "Propiedades"
+
+    def __str__(self):
+        return self.nombre_propiedad
+
+
+# =============================================================================
+# PROPIEDAD_PRODUCTO
+# =============================================================================
+class PropiedadProducto(models.Model):
+    """
+    Tabla: Propiedad_Producto (Intermedia)
+    Asigna un valor específico a una propiedad para un producto determinado.
+    """
+    fk_producto = models.ForeignKey(
+        Producto, 
+        on_delete=models.CASCADE, 
+        db_column="ID_Producto",
+        related_name="propiedades_producto" # Te permite hacer: mi_producto.propiedades_producto.all()
+    )
+    fk_propiedad = models.ForeignKey(
+        Propiedad, 
+        on_delete=models.PROTECT, # Protege contra borrado accidental de propiedades en uso
+        db_column="ID_Propiedad",
+        related_name="valores_productos"
+    )
+    valor = models.CharField(
+        max_length=200, 
+        db_column="valor"
+    ) # Ejemplo de lo que se guarda aquí: "Blanco", "40 cm", "Acero Dorado"
+
+    class Meta:
+        db_table = "Propiedad_Producto"
+        # Garantiza que un producto no tenga dos veces la propiedad "Color"
+        unique_together = [["fk_producto", "fk_propiedad"]] 
+        verbose_name = "Propiedad de Producto"
+        verbose_name_plural = "Propiedades de Productos"
+
+    def __str__(self):
+        return f"{self.fk_producto} - {self.fk_propiedad}: {self.valor}"
