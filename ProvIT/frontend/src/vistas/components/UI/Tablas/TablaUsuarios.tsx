@@ -27,8 +27,6 @@ export function TablaUsuarios({ users, onEdit, onDelete, onResetPassword, onView
     const badges: Record<EstadoUsuario, string> = {
       activo: 'bg-emerald-100 text-emerald-700 ring-emerald-600/20',
       inactivo: 'bg-slate-100 text-slate-700 ring-slate-600/20',
-      suspendido: 'bg-red-100 text-red-700 ring-red-600/10',
-      pendiente: 'bg-amber-100 text-amber-700 ring-amber-600/20'
     };
     
     return (
@@ -54,10 +52,10 @@ export function TablaUsuarios({ users, onEdit, onDelete, onResetPassword, onView
                 aria-label="Seleccionar todos los usuarios"
               />
             </th>
-            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Usuario</th>
-            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Cargo / Rol</th>
-            <th className="px-6 py-4">Estado</th>
-            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Último Acceso</th>
+            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Nombre</th>
+            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">E-mail</th>
+            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Rol</th>
+            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Estado</th>
             <th className="px-6 py-4 text-right">Acciones</th>
           </tr>
         </thead>

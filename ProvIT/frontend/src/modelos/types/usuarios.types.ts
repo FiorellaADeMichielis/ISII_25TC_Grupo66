@@ -1,4 +1,4 @@
-export type EstadoUsuario = 'activo' | 'inactivo' | 'suspendido' | 'pendiente';
+export type EstadoUsuario = 'activo' | 'inactivo' ;
 
 export interface Usuario {
   id: string;

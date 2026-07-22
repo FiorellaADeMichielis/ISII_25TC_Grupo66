@@ -10,7 +10,8 @@ export const Usuarios = () => {
   const { 
     usuarios, 
     metricas, // Este objeto ahora es de tipo MetricasUsuario
-    busquedaQuery, 
+    busquedaQuery,
+    isLoading, 
     setBusquedaQuery,
     handleVistaUsuario,
     handleEditarUsuario,
@@ -24,21 +25,11 @@ export const Usuarios = () => {
       {/* --- HEADER SUPERIOR --- */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <nav className="flex text-sm text-slate-500 mb-2 font-medium" aria-label="Breadcrumb">
-            <span>ProvIT</span>
-            <span className="mx-2">/</span>
-            <span>Administración</span>
-            <span className="mx-2">/</span>
-            <span className="text-slate-900" aria-current="page">Usuarios</span>
-          </nav>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestión de Usuarios</h1>
           <p className="text-slate-500 mt-1">Administra accesos, roles y permisos de la plataforma.</p>
         </div>
         
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 font-medium transition-colors flex items-center gap-2 shadow-sm">
-            <Download className="w-4 h-4" /> Exportar CSV
-          </button>
           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm shadow-blue-200 transition-colors flex items-center gap-2">
             <Plus className="w-4 h-4" /> Nuevo Usuario
           </button>
@@ -46,10 +37,7 @@ export const Usuarios = () => {
       </header>
 
       {/* --- TARJETAS DE MÉTRICAS --- */}
-      {/* Como definiste 'estaCargando' dentro del modelo MetricasUsuario, 
-        evaluamos ese booleano para mostrar el skeleton o las tarjetas 
-      */}
-      {metricas?.estaCargando ? (
+      {isLoading || !metricas ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="bg-white h-32 rounded-xl border border-gray-200 p-5 animate-pulse shadow-sm">
@@ -59,7 +47,7 @@ export const Usuarios = () => {
           ))}
         </div>
       ) : (
-        metricas && <TarjetaUsuarios datos={metricas} />
+        <TarjetaUsuarios datos={metricas} />
       )}
 
       {/* --- BARRA DE BÚSQUEDA Y FILTROS --- */}
@@ -81,13 +69,14 @@ export const Usuarios = () => {
 
       {/* --- TABLA DE USUARIOS --- */}
       <div className="-mt-8">
-        {/* Si la tabla también depende de un estado global de carga, lo evaluamos aquí */}
-        {!usuarios || usuarios.length === 0 && metricas?.estaCargando ? (
+        {isLoading ? (
+          /* Estado de Carga (Spinner) para la Tabla */
           <div className="w-full h-64 flex flex-col items-center justify-center bg-white rounded-b-2xl border border-slate-200 shadow-sm">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <span className="text-slate-500 font-medium animate-pulse">Cargando datos de usuarios...</span>
           </div>
         ) : (
+          /* Renderizado de la tabla cuando ya hay datos */
           <TablaUsuarios 
             users={usuarios} 
             onView={handleVistaUsuario}
