@@ -34,13 +34,13 @@ export default function App() {
               <Route index element={<Navigate to="/proveedores" replace />} />
 
               {/* Módulos accesibles por todos los roles */}
-              <Route path="estadisticas"    element={<Estadisticas />} />
+              <Route path="configuracion" element={<Configuracion />} />
               <Route path="proveedores" element={<Proveedores />} />
               <Route path="pedidos"    element={<Pedidos />} />
 
               {/* Administrador y Gerente */}
               <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMINISTRADOR, ROLES.GERENTE]} />}>
-                <Route path="configuracion" element={<Configuracion />} />
+                <Route path="estadisticas"    element={<Estadisticas />} />
               </Route>
 
               {/* Solo Gerente */}
