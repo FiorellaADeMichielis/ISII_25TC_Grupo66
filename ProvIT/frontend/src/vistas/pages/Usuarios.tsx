@@ -28,12 +28,6 @@ export const Usuarios = () => {
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestión de Usuarios</h1>
           <p className="text-slate-500 mt-1">Administra accesos, roles y permisos de la plataforma.</p>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm shadow-blue-200 transition-colors flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Nuevo Usuario
-          </button>
-        </div>
       </header>
 
       {/* --- TARJETAS DE MÉTRICAS --- */}
@@ -65,6 +59,11 @@ export const Usuarios = () => {
         <button className="w-full sm:w-auto px-4 py-2 text-sm text-slate-600 font-medium flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors bg-white shadow-sm">
           <Filter className="w-4 h-4" /> Filtros Avanzados
         </button>
+        <div className="flex items-center gap-3">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm shadow-blue-200 transition-colors flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Nuevo Usuario
+          </button>
+        </div>
       </div>
 
       {/* --- TABLA DE USUARIOS --- */}

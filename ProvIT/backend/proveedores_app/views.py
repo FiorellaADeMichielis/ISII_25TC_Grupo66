@@ -82,13 +82,13 @@ class ProvITLoginView(TokenObtainPairView):
 
 class UsuarioRegistroView(generics.CreateAPIView):
     """
-    POST /api/registro/
+    POST registro/
     Caso de Uso: Registrar un nuevo usuario.
-    Actor: Público (AllowAny)
+    Actor: Gerente
     """
     queryset = Usuario.objects.all()
     serializer_class = UsuarioRegistroSerializer
-    permission_classes = [AllowAny] # Excepción de seguridad: No requiere JWT
+    permission_classes = [IsAuthenticated]
 # ===========================================================================
 # 4. CONTROLADORES DEL MÓDULO PROVEEDORES
 # ===========================================================================
