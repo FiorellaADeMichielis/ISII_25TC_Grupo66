@@ -165,3 +165,22 @@ class ServicioUsuariosGerente:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
         except Exception as e:
             return {'success': False, 'mensaje': f'Error al actualizar el cargo: {e}'}
+
+    @classmethod
+    def obtenerMetricas(cls):
+        """
+        Calcula las estadísticas generales de los usuarios para las tarjetas (KPIs).
+        """
+        # Partimos de la base excluyendo al Gerente (rol 3)
+        base_qs = Usuario.objects.exclude(fk_rol_id=3)
+
+        # Hacemos los conteos directamente en la BD para máxima velocidad
+        return {
+            "nombre": "Usuarios del Sistema",
+            "total": base_qs.count(),
+            "activos": base_qs.filter(estado=True).count(),
+            "inactivos": base_qs.filter(estado=False).count(),
+            "administradores": base_qs.filter(fk_rol_id=2).count(),
+            "operadores": base_qs.filter(fk_rol_id=1).count(),
+            "estaCargando": False
+        }

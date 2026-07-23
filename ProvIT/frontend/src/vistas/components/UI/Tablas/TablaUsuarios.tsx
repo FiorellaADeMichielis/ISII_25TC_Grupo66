@@ -52,10 +52,10 @@ export function TablaUsuarios({ users, onEdit, onDelete, onResetPassword, onView
                 aria-label="Seleccionar todos los usuarios"
               />
             </th>
-            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Nombre</th>
-            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">E-mail</th>
+            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Usuario</th>
             <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Rol</th>
             <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Estado</th>
+            <th className="px-6 py-4 cursor-pointer hover:text-slate-800 transition-colors">Último Acceso</th>
             <th className="px-6 py-4 text-right">Acciones</th>
           </tr>
         </thead>

@@ -598,7 +598,26 @@ class UsuarioEliminarView(APIView):
         else:
             return respuestaError(resultado['mensaje'], status.HTTP_404_NOT_FOUND)
 
+class UsuarioMetricasView(APIView):
+    """
+    GET /usuarios/metricas/
+    Obtiene los KPIs para las tarjetas superiores del dashboard de usuarios.
+    """
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        # Validación de seguridad: Solo el Gerente (rol 3) puede ver las métricas
+        if request.user.fk_rol.id_rol != 3:
+            return respuestaError("No tienes permisos de Gerente para acceder a las métricas.", status.HTTP_403_FORBIDDEN)
+
+        try:
+            # Delegamos el cálculo a nuestro servicio
+            data = ServicioUsuariosGerente.obtenerMetricas()
+            return respuestaExitosa(data=data, mensaje="Métricas obtenidas correctamente.")
+        except Exception as e:
+            return respuestaError(f"Error al calcular métricas: {str(e)}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
 class UsuarioEditarRolView(APIView):
     """
     PATCH /api/gerente/usuarios/{pk}/editar-rol/

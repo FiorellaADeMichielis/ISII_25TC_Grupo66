@@ -35,7 +35,7 @@ export const TarjetaUsuarios = ({ datos }: TarjetaUsuariosProps) => {
           titulo="Operadores"
           valor={datos.operadores}
           claseBordeColor="border-red-500"
-        />s
+        />
       </div>
     </div>
   );

@@ -1,77 +1,65 @@
-import axios from 'axios';
-import type { Usuario } from '../../modelos/types/usuarios.types';
-import type { MetricasUsuario } from '../../modelos/types/metricas.types';
+// src/servicios/usuarioService.ts
+import { api} from '../services/api'; 
+import type { APIResponse } from '../types/api.types';
+import type { Usuario } from '../types/usuarios.types';
+import type { MetricasUsuario } from '../types/metricas.types';
 
-// 1. Configuración centralizada de Axios para este dominio
-const apiClient = axios.create({
-  // En producción, esto debería venir de tus variables de entorno (.env)
-  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1` : 'https://api.provit.com/v1',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000, // Timeout de seguridad (10 segundos)
-});
-
-// 2. Interceptor: Inyección automática del Token JWT de seguridad (SaaS Standard)
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('provit_auth_token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// 3. Objeto Servicio con todos los métodos del CRUD tipados
 export const UsuarioService = {
   
-  /**
-   * Obtiene la lista de usuarios. Soporta filtros dinámicos como búsqueda.
-   */
-  obtenerUsuarios: async (filtros?: { buscar?: string }): Promise<Usuario[]> => {
-    // Axios inyectará automáticamente "?buscar=lo_que_escribas" en la URL
-    const respuesta = await apiClient.get<Usuario[]>('/usuarios', { params: filtros });
-    return respuesta.data;
-  },
+  obtenerUsuarios: async (filtros?: { buscar?: string; estado?: boolean; rol_id?: number }): Promise<Usuario[]> => {
+    const params = {
+      busqueda: filtros?.buscar, 
+      estado: filtros?.estado,
+      rol_id: filtros?.rol_id
+    };
+    
+    // 1. Recibimos la respuesta de Django (podemos usar 'any[]' o crear una interfaz temporal para el backend)
+    const respuesta = await api.get<APIResponse<any[]>>('/usuarios/', { params });
+    
+    // 2. PATRÓN ADAPTADOR: Transformamos las llaves de Django a lo que espera React
+    const usuariosFormateados: Usuario[] = respuesta.data.data.map((userBack) => ({
+      // Mapeo de IDs y textos
+      id: userBack.id_usuario.toString(),
+      nombre: userBack.nombre_completo,
+      email: userBack.correo_usuario,
+      
+      // En tu backend no hay "cargo" distinto al "rol", así que duplicamos el rol para la UI
+      cargo: userBack.rol_nombre || "Sin cargo",
+      rol: userBack.rol_nombre || "Sin rol",
+      
+      // Transformación crítica: Booleano de Django (True/False) a String de React ('activo'/'inactivo')
+      estado: userBack.estado ? 'activo' : 'inactivo',
+      
+      // Datos visuales (Placeholders) que tu interfaz necesita pero el backend aún no provee
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userBack.nombre_completo)}&background=random`,
+      ultimoLogin: "Sin registro" 
+    }));
 
-  /**
-   * Obtiene las métricas globales para el dashboard superior.
-   */
+    // 3. Retornamos el array ya traducido. El resto de React ni se enterará del cambio.
+    return usuariosFormateados;
+  },
   obtenerMetricas: async (): Promise<MetricasUsuario> => {
-    const respuesta = await apiClient.get<MetricasUsuario>('/usuarios/metricas');
-    return respuesta.data;
+    const respuesta = await api.get<APIResponse<MetricasUsuario>>('/usuarios/metricas/');
+    return respuesta.data.data;
   },
 
-  /**
-   * Crea un nuevo usuario en la plataforma.
-   * Usamos Omit para indicar que enviamos un Usuario, pero sin el ID (lo genera el backend).
-   */
-  crearUsuario: async (nuevoUsuario: Omit<Usuario, 'id'>): Promise<Usuario> => {
-    const respuesta = await apiClient.post<Usuario>('/usuarios', nuevoUsuario);
-    return respuesta.data;
+  crearUsuario: async (nuevoUsuario: Omit<Usuario, 'id_usuario'>): Promise<{id_usuario: number, mensaje: string}> => {
+    const respuesta = await api.post<APIResponse<{id_usuario: number}>>('/usuarios/agregar/', nuevoUsuario);
+    return {
+      id_usuario: respuesta.data.data.id_usuario,
+      mensaje: respuesta.data.mensaje || 'Usuario creado'
+    };
   },
 
-  /**
-   * Actualiza los datos de un usuario existente.
-   */
-  editarUsuario: async (id: string, datos: Partial<Usuario>): Promise<Usuario> => {
-    const respuesta = await apiClient.put<Usuario>(`/usuarios/${id}`, datos);
-    return respuesta.data;
+  editarRolUsuario: async (id: number, nuevoRolId: number): Promise<string> => {
+    const respuesta = await api.patch<APIResponse<{nuevo_rol: string}>>(`/usuarios/${id}/editar-rol/`, {
+      nuevo_rol_id: nuevoRolId
+    });
+    return respuesta.data.data.nuevo_rol;
   },
 
-  /**
-   * Realiza un borrado lógico o físico del usuario.
-   */
-  eliminarUsuario: async (id: string): Promise<void> => {
-    await apiClient.delete(`/usuarios/${id}`);
-  },
-
-  /**
-   * Dispara el flujo de recuperación de contraseña para un usuario.
-   */
-  restablecerContrasena: async (id: string): Promise<void> => {
-    await apiClient.post(`/usuarios/${id}/restablecer-contrasena`);
+  eliminarUsuario: async (id: number): Promise<boolean> => {
+    const respuesta = await api.patch<APIResponse<{nuevo_estado: boolean}>>(`/usuarios/${id}/eliminar/`);
+    return respuesta.data.data.nuevo_estado;
   }
 };
