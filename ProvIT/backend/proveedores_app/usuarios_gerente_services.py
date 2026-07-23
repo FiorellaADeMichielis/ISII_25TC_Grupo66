@@ -140,28 +140,39 @@ class ServicioUsuariosGerente:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
 
     @classmethod
-    def editarUsuario(cls, usuario_id, nuevo_rol_id):
+    def editarUsuario(cls, usuario_id, nombre=None, apellido=None, dni=None, correo=None, rol_id=None):
         """
-        Modifica exclusivamente el Cargo (Rol) del usuario.
-        Ej: Pasa de Operador (1) a Administrador (2).
+        Modifica solo los campos proporcionados. Si un campo llega como None, mantiene el valor que ya tenía en la base de datos.
         """
         try:
-            # Traemos el usuario y su rol actual
             usuario = Usuario.objects.select_related('fk_rol').get(id_usuario=usuario_id)
             
-            # Actualizamos la clave foránea directamente
-            usuario.fk_rol_id = nuevo_rol_id
-            usuario.save()
+            # Solo si enviaron un correo nuevo, validamos que no esté en uso
+            if correo is not None and usuario.correo_usuario != correo:
+                if Usuario.objects.filter(correo_usuario=correo).exists():
+                    return {'success': False, 'mensaje': 'El nuevo correo ya está en uso por otro usuario.'}
+                usuario.correo_usuario = correo
+
+            # Actualizamos solo los campos que traen información
+            if nombre is not None:
+                usuario.nombre_usuario = nombre
+            if apellido is not None:
+                usuario.apellido_usuario = apellido
+            if dni is not None:
+                usuario.dni = dni
+            if rol_id is not None:
+                usuario.fk_rol_id = rol_id
             
-            # Refrescamos desde la BD para devolver el nombre del nuevo rol al frontend
+            usuario.save()
             usuario.refresh_from_db()
             
             return {
                 'success': True,
-                'mensaje': 'Cargo actualizado correctamente.',
-                'nuevo_rol': usuario.fk_rol.nombre
+                'mensaje': 'Datos del usuario actualizados correctamente.',
+                'usuario_actualizado': cls._formatear_usuario(usuario) 
             }
+            
         except Usuario.DoesNotExist:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
         except Exception as e:
-            return {'success': False, 'mensaje': f'Error al actualizar el cargo: {e}'}
+            return {'success': False, 'mensaje': f'Error al actualizar los datos: {e}'}

@@ -599,24 +599,39 @@ class UsuarioEliminarView(APIView):
             return respuestaError(resultado['mensaje'], status.HTTP_404_NOT_FOUND)
 
 
-class UsuarioEditarRolView(APIView):
+class UsuarioEditarView(APIView):
     """
-    PATCH /api/gerente/usuarios/{pk}/editar-rol/
-    Modifica el Cargo (Rol) de un usuario.
+    PATCH usuarios/{pk}/editar/
+    Modificación parcial: actualiza únicamente los campos enviados en el JSON.
     """
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk):
         if request.user.fk_rol.id_rol != 3:
-            return respuestaError("No tienes permisos para cambiar roles.", status.HTTP_403_FORBIDDEN)
+            return respuestaError("No tienes permisos para editar usuarios.", status.HTTP_403_FORBIDDEN)
 
-        nuevo_rol_id = request.data.get('nuevo_rol_id')
-        if not nuevo_rol_id:
-            return respuestaError("El campo 'nuevo_rol_id' es obligatorio.", status.HTTP_400_BAD_REQUEST)
+        # Extraemos los datos. Si el frontend no envía alguno, request.data.get() devuelve None
+        nombre = request.data.get('nombre')
+        apellido = request.data.get('apellido')
+        dni = request.data.get('dni')
+        correo = request.data.get('correo')
+        rol_id = request.data.get('rol_id')
 
-        resultado = ServicioUsuariosGerente.editarUsuario(pk, nuevo_rol_id)
+        # Validamos que nos hayan enviado AL MENOS un campo para editar
+        if not any([nombre, apellido, dni, correo, rol_id]):
+            return respuestaError("Debe enviar al menos un campo para actualizar.", status.HTTP_400_BAD_REQUEST)
+
+        # Enviamos los datos al servicio (algunos tendrán valor, otros serán None)
+        resultado = ServicioUsuariosGerente.editarUsuario(
+            usuario_id=pk, 
+            nombre=nombre, 
+            apellido=apellido, 
+            dni=dni, 
+            correo=correo, 
+            rol_id=rol_id
+        )
         
         if resultado['success']:
-            return respuestaExitosa(data={'nuevo_rol': resultado['nuevo_rol']}, mensaje=resultado['mensaje'])
+            return respuestaExitosa(data=resultado['usuario_actualizado'], mensaje=resultado['mensaje'])
         else:
             return respuestaError(resultado['mensaje'], status.HTTP_400_BAD_REQUEST)

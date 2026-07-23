@@ -22,7 +22,7 @@ from .views import (
     UsuarioListarView,
     UsuarioAgregarView,
     UsuarioEliminarView,
-    UsuarioEditarRolView
+    UsuarioEditarView
 )
 
 urlpatterns = [
@@ -65,8 +65,8 @@ urlpatterns = [
                 path("productos/", ProductoListaView.as_view(), name="productos-lista"),
 
                 # MÓDULO GERENTE - GESTION USUARIOS
-                path('api/gerente/usuarios/', UsuarioListarView.as_view(), name='listar_usuarios'),
-                path('api/gerente/usuarios/agregar/', UsuarioAgregarView.as_view(), name='agregar_usuario'),
-                path('api/gerente/usuarios/<int:pk>/eliminar/', UsuarioEliminarView.as_view(), name='eliminar_usuario'),
-                path('api/gerente/usuarios/<int:pk>/editar-rol/', UsuarioEditarRolView.as_view(), name='editar_rol_usuario')
+                path('usuarios/', UsuarioListarView.as_view(), name='listar_usuarios'),
+                path('usuarios/agregar/', UsuarioAgregarView.as_view(), name='agregar_usuario'),
+                path('usuarios/<int:pk>/eliminar/', UsuarioEliminarView.as_view(), name='eliminar_usuario'),
+                path('usuarios/<int:pk>/editar/', UsuarioEditarView.as_view(), name='editar_usuario')
             ]
