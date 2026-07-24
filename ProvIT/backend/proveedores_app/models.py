@@ -514,3 +514,113 @@ class ProveedorProducto(models.Model):
         verbose_name_plural = "Proveedores - Productos"
     def __str__(self):
         return f"{self.fk_proveedor} → {self.fk_producto} (${self.precio_actual})"
+
+# =============================================================================
+# TIPO_REPORTE (Catálogo)
+# =============================================================================
+class TipoReporte(models.Model):
+    """
+    Tabla: Tipo_Reporte. Catálogo para clasificar los reportes. Permite expandir a futuro:
+    1: Análisis por Proveedor
+    2: Análisis por Producto (Futuro)
+    3: Ranking Top 5 (Futuro)
+    """
+    id_tipo_reporte = models.AutoField(
+        primary_key=True, 
+        db_column="ID_Tipo_Reporte"
+    )
+    nombre_tipo = models.CharField(
+        max_length=50, 
+        unique=True,
+        db_column="nombre_tipo"
+    )
+
+    class Meta:
+        db_table = "Tipo_Reporte"
+        verbose_name = "Tipo de Reporte"
+        verbose_name_plural = "Tipos de Reportes"
+
+    def __str__(self):
+        return self.nombre_tipo
+
+# =============================================================================
+# REPORTE
+# =============================================================================
+class Reporte(models.Model):
+    """
+    Tabla: Reporte. Almacena los metadatos consultables y el snapshot inmutable de los análisis.
+    Diseñado para soportar análisis individuales y rankings globales.
+    """
+    id_reporte = models.AutoField(
+        primary_key=True, 
+        db_column="ID_Reporte"
+    )
+    # Fecha exacta en la que el administrador hizo clic en "Guardar Reporte"
+    fecha_generacion = models.DateTimeField(
+        auto_now_add=True, 
+        db_column="fecha_generacion"
+    )
+    
+    # Parámetros del filtro original (Periodo evaluado)
+    fecha_inicio_filtro = models.DateField(db_column="fecha_inicio_filtro")
+    fecha_fin_filtro = models.DateField(db_column="fecha_fin_filtro")
+    
+    # Relaciones de Auditoría y Contexto
+    fk_usuario = models.ForeignKey(
+        'Usuario', # Referencia al modelo Usuario existente
+        on_delete=models.PROTECT, # No se puede borrar un admin si generó reportes
+        db_column="ID_Usuario",
+        related_name="reportes_generados"
+    )
+    fk_tipo_reporte = models.ForeignKey(
+        TipoReporte,
+        on_delete=models.PROTECT,
+        db_column="ID_Tipo_Reporte",
+        related_name="reportes"
+    )
+    
+    # Claves foráneas opcionales. 
+    # Si es "Análisis de Proveedor", fk_proveedor tiene datos.
+    # Si es "Ranking Top 5", fk_proveedor es NULL.
+    fk_proveedor = models.ForeignKey(
+        'Proveedor', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        db_column="ID_Proveedor",
+        related_name="reportes_asociados"
+    )
+    fk_producto = models.ForeignKey(
+        'Producto', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        db_column="ID_Producto",
+        related_name="reportes_asociados"
+    )
+
+    # Resultados Principales (Normalizados para poder buscar/filtrar reportes)
+    escala_precio = models.FloatField(null=True, blank=True, db_column="escala_precio")
+    escala_calidad = models.FloatField(null=True, blank=True, db_column="escala_calidad")
+    escala_velocidad = models.FloatField(null=True, blank=True, db_column="escala_velocidad")
+    
+    recomendacion_texto = models.TextField(
+        null=True, 
+        blank=True, 
+        db_column="recomendacion_texto"
+    )
+    
+    # Snapshot Inmutable (El Payload del Reporte)
+    # Guarda la estructura exacta de 'graficaLineas', 'graficaTorta' o la lista del 'Top 5'
+    # Evita crear múltiples tablas hijas para datos estáticos que no vamos a modificas más.
+    datos_completos_snapshot = models.JSONField(
+        db_column="datos_completos_snapshot"
+    )
+
+    class Meta:
+        db_table = "Reporte"
+        verbose_name = "Reporte de Análisis"
+        verbose_name_plural = "Reportes de Análisis"
+
+    def __str__(self):
+        return f"Reporte #{self.id_reporte} - {self.fecha_generacion.strftime('%Y-%m-%d')}"
