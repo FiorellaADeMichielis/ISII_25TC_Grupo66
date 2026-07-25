@@ -7,7 +7,7 @@ import type { ApiResponse } from '../types/pedido.types';
 
 export const UsuarioService = {
   
-  obtenerUsuarios: async (filtros?: { buscar?: string }): Promise<Usuario[]> => {
+  obtenerUsuarios: async (filtros?: { buscar?: string; estado?: string; rol_id?: string }): Promise<Usuario[]> => {
     try {
       const response = await api.get('/usuarios/', { params: filtros });
       let datosCrudos = [];

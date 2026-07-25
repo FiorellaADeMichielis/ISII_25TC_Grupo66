@@ -21,6 +21,7 @@ export const Usuarios = () => {
     handleGuardarEdicion,      // Función que ejecuta el PUT al backend
     handleRestablecerContrasena,
     handleEliminarUsuario,
+    isFetching,
     cargarDatos
   } = useUsuarios();
 
@@ -51,15 +52,22 @@ export const Usuarios = () => {
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-t-2xl border-t border-l border-r border-slate-200 shadow-sm">
         <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Buscar por nombre, correo o rol..." 
-            value={busquedaQuery}
-            onChange={(e) => setBusquedaQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-slate-50 focus:bg-white"
-          />
-        </div>
+            {/* Animación sutil de la lupa cambiando a spinner */}
+            {isFetching ? (
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-slate-300 border-t-blue-500 rounded-full animate-spin"></div>
+            ) : (
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            )}
+            <input 
+              type="text" 
+              placeholder="Buscar por nombre, correo..." 
+              value={busquedaQuery}
+              onChange={(e) => setBusquedaQuery(e.target.value)}
+              className={`w-full pl-9 pr-4 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all ${
+                isFetching ? 'bg-slate-100 border-slate-300' : 'bg-slate-50 border-slate-200 focus:bg-white'
+              }`}
+            />
+          </div>
         <button className="w-full sm:w-auto px-4 py-2 text-sm text-slate-600 font-medium flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors bg-white shadow-sm">
           <Filter className="w-4 h-4" /> Filtros Avanzados
         </button>

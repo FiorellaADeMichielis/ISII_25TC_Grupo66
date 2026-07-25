@@ -7,8 +7,15 @@ import type { MetricasUsuario } from '../../modelos/types/metricas.types';
 export const useUsuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [metricas, setMetricas] = useState<MetricasUsuario | null>(null);
+  
+  // 🚀 Separamos la carga inicial de la recarga de fondo para evitar parpadeos
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  
   const [busquedaQuery, setBusquedaQuery] = useState<string>('');
+  
+  // 🚀 Estado para los filtros combinados
+  const [filtrosAvanzados, setFiltrosAvanzados] = useState({ estado: '', rol_id: '' });
 
   // Estados independientes para el Modal de Edición
   const [isModalEdicionOpen, setIsModalEdicionOpen] = useState<boolean>(false);
@@ -17,10 +24,15 @@ export const useUsuarios = () => {
   const debouncedBusqueda = useDebounce<string>(busquedaQuery, 500);
 
   const cargarDatos = useCallback(async () => {
-    setIsLoading(true);
+    // Activamos isFetching en lugar de isLoading para que la tabla no desaparezca al buscar
+    setIsFetching(true); 
     try {
       const [datosUsuarios, datosMetricas] = await Promise.all([
-        UsuarioService.obtenerUsuarios({ buscar: debouncedBusqueda }), 
+        UsuarioService.obtenerUsuarios({ 
+          buscar: debouncedBusqueda,
+          estado: filtrosAvanzados.estado,
+          rol_id: filtrosAvanzados.rol_id
+        }), 
         UsuarioService.obtenerMetricas()
       ]);
       setUsuarios(datosUsuarios);
@@ -28,9 +40,10 @@ export const useUsuarios = () => {
     } catch (error) {
       console.error("Error al cargar los datos:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Apagamos la carga inicial (pantalla completa) para siempre
+      setIsFetching(false); // Apagamos el indicador de búsqueda de fondo
     }
-  }, [debouncedBusqueda]); 
+  }, [debouncedBusqueda, filtrosAvanzados]); 
 
   useEffect(() => {
     cargarDatos();
@@ -76,8 +89,11 @@ export const useUsuarios = () => {
     usuarios,
     metricas,
     isLoading,
+    isFetching,
     busquedaQuery,
     setBusquedaQuery,
+    filtrosAvanzados,
+    setFiltrosAvanzados,
     isModalEdicionOpen,
     usuarioEditando,
     abrirModalEdicion,
