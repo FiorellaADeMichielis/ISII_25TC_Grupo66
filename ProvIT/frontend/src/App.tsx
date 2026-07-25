@@ -2,9 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ROLES } from "./modelos/types/layout.types";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./router/protectedRoute";
-
 import { Login }         from "./vistas/pages/Login";
-import { Registro }      from "./vistas/pages/Registro";
 import { Dashboard }     from "./vistas/components/layout/Dashboard";
 import { Estadisticas }      from "./vistas/pages/Estadisticas";
 import { Proveedores }   from "./vistas/pages/Proveedores";
@@ -22,7 +20,6 @@ export default function App() {
 
           {/* Rutas Públicas */}
           <Route path="/login" element={<Login />} />
-          <Route path="/registro" element={<Registro />} /> 
 
           {/* Verifica sesión activa para cualquier rol */}
           <Route element={<ProtectedRoute allowedRoles={TODOS} />}>

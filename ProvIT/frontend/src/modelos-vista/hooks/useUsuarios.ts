@@ -69,6 +69,7 @@ export const useUsuarios = () => {
     handleVistaUsuario,
     handleEditarUsuario,
     handleRestablecerContrasena,
-    handleEliminarUsuario
+    handleEliminarUsuario,
+    cargarDatos
   };
 };

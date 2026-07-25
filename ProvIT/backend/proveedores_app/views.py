@@ -513,7 +513,7 @@ class ProductoListaView(generics.ListAPIView):
 
 class UsuarioListarView(APIView):
     """
-    GET /api/gerente/usuarios/
+    GET /api/usuarios/
     Obtiene todos los usuarios, con opciones de búsqueda y filtro.
     """
     permission_classes = [IsAuthenticated]
@@ -542,7 +542,7 @@ class UsuarioListarView(APIView):
 
 class UsuarioAgregarView(APIView):
     """
-    POST /api/gerente/usuarios/agregar/
+    POST /api/usuarios/registrar/
     Añade un nuevo usuario al sistema.
     """
     permission_classes = [IsAuthenticated]
@@ -564,10 +564,13 @@ class UsuarioAgregarView(APIView):
         resultado = ServicioUsuariosGerente.agregarUsuario(nombre, apellido, dni, correo, rol_id)
         
         if resultado['success']:
-            return respuestaExitosa(data={'id_usuario': resultado['id_usuario']}, mensaje=resultado['mensaje'], status_code=status.HTTP_201_CREATED)
+            # ✅ VERSIÓN DEFINITIVA: Solo enviamos data y mensaje
+            return respuestaExitosa(
+                data={'id_usuario': resultado['id_usuario']}, 
+                mensaje=resultado['mensaje']
+            )
         else:
             return respuestaError(resultado['mensaje'], status.HTTP_400_BAD_REQUEST)
-
 
 class UsuarioEliminarView(APIView):
     """

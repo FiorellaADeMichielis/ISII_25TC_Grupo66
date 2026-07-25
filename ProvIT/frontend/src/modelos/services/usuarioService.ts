@@ -52,12 +52,34 @@ export const UsuarioService = {
     }
   },
 
-  crearUsuario: async (nuevoUsuario: Omit<Usuario, 'id_usuario'>): Promise<{id_usuario: number, mensaje: string}> => {
-    const respuesta = await api.post<APIResponse<{id_usuario: number}>>('/usuarios/agregar/', nuevoUsuario);
-    return {
-      id_usuario: respuesta.data.data.id_usuario,
-      mensaje: respuesta.data.mensaje || 'Usuario creado'
-    };
+crearUsuario: async (datosFormulario: { nombre: string; apellido: string; dni: string; email: string; rol_id: string }): Promise<boolean> => {
+    try {
+      // PATRÓN ADAPTADOR: Transforma los datos visuales al modelo estricto de Django
+      const payloadBackend = {
+        nombre: datosFormulario.nombre,
+        apellido: datosFormulario.apellido,
+        dni: Number(datosFormulario.dni),       // Convierte el string del input a Número
+        correo: datosFormulario.email,          // Mapea'email' de React a 'correo' de Django
+        rol_id: Number(datosFormulario.rol_id), // Toma el '1' o '2' del select y lo hace Número
+      };
+
+      await api.post('/usuarios/registrar/', payloadBackend);
+      
+      return true; // Si llega aquí, se creó exitosamente (200/201)
+
+    } catch (error: any) {
+      // CAPTURA INTELIGENTE DE ERRORES DE DJANGO
+      if (error.response && error.response.data) {
+        const dataError = error.response.data;
+        // Buscamos si Django mandó {"mensaje": "..."} o {"errores": "..."}
+        const mensaje = dataError.errores || dataError.mensaje || Object.values(dataError)[0];
+        const textoFinal = Array.isArray(mensaje) ? mensaje[0] : mensaje;
+        
+        throw new Error(textoFinal as string || 'Error al procesar la solicitud.');
+      }
+      
+      throw new Error('Ocurrió un error al conectar con el servidor.');
+    }
   },
 
   editarRolUsuario: async (id: number, nuevoRolId: number): Promise<string> => {

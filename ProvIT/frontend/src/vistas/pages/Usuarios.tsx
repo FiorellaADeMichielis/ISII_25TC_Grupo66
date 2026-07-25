@@ -1,9 +1,9 @@
 import { Plus, Search, Filter, Download } from 'lucide-react';
-// 1. Importamos tus componentes exactos
 import { TarjetaUsuarios } from '../../vistas/components/UI/Tarjetas/TarjetaUsuarios';
 import { TablaUsuarios } from '../../vistas/components/UI/Tablas/TablaUsuarios';
-// 2. Importamos el hook controlador
+import { ModalRegistro } from '../components/UI/Modales/ModalRegistroVista'; 
 import { useUsuarios } from '../../modelos-vista/hooks/useUsuarios';
+import { useModal } from '../../modelos-vista/hooks/useModal'; 
 
 export const Usuarios = () => {
   // 3. Obtenemos el estado y las acciones desde tu controlador
@@ -16,8 +16,12 @@ export const Usuarios = () => {
     handleVistaUsuario,
     handleEditarUsuario,
     handleRestablecerContrasena,
-    handleEliminarUsuario
+    handleEliminarUsuario,
+    cargarDatos
   } = useUsuarios();
+
+  // 🚀 3. Inicializamos el estado del modal usando el hook genérico
+  const modalRegistro = useModal();
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -60,9 +64,15 @@ export const Usuarios = () => {
           <Filter className="w-4 h-4" /> Filtros Avanzados
         </button>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm shadow-blue-200 transition-colors flex items-center gap-2">
+          
+          {/* conectar el botón de Nuevo Usuario a la función openModal */}
+          <button 
+            onClick={modalRegistro.openModal}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm shadow-blue-200 transition-colors flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" /> Nuevo Usuario
           </button>
+
         </div>
       </div>
 
@@ -85,6 +95,18 @@ export const Usuarios = () => {
           />
         )}
       </div>
+
+      {/*componente Modal al final del DOM */}
+      <ModalRegistro 
+        isOpen={modalRegistro.isOpen} 
+        onClose={modalRegistro.closeModal}
+        onSuccess={() => {
+          modalRegistro.closeModal(); 
+          if (cargarDatos) {
+            cargarDatos();
+          }
+        }}
+      />
 
     </div>
   );

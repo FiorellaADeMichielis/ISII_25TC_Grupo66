@@ -1,30 +1,71 @@
 import { useState } from 'react';
-import { registerService } from '../../modelos/services/authService';
-import type { RegisterData } from '../../modelos/types/auth.types';
+import { UsuarioService } from '../../modelos/services/usuarioService';
 
-export const useRegistro = () => {
-  const [loading, setLoading] = useState(false);
-  const [errorGlobal, setErrorGlobal] = useState<string | null>(null);
+export const useModalRegistro = (onSuccess: () => void) => {
+  // 1. Estado centralizado para el formulario (Sin contraseñas, el backend usa el DNI)
+  const [formData, setFormData] = useState({
+    nombre: '',
+    apellido: '',
+    dni: '',
+    email: '',
+    rol_id: '1', // Por defecto: Operador
+  });
 
-  const registrarUsuario = async (datos: RegisterData): Promise<boolean> => {
-    setLoading(true);
-    setErrorGlobal(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorServidor, setErrorServidor] = useState<string | null>(null);
+  const [erroresLocales, setErroresLocales] = useState<Record<string, string>>({});
+
+  // 2. Manejador de cambios limpio
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Limpiar errores cuando el usuario vuelve a escribir
+    if (errorServidor) setErrorServidor(null);
+    if (erroresLocales[name]) {
+      setErroresLocales((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  // 3. Envío y Validación
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // --- VALIDACIONES LOCALES ---
+    const nuevosErrores: Record<string, string> = {};
+    if (formData.dni.length < 7 || formData.dni.length > 8) {
+      nuevosErrores.dni = 'El DNI debe tener entre 7 y 8 dígitos.';
+    }
+    
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErroresLocales(nuevosErrores);
+      return; // Detenemos la ejecución si hay errores locales
+    }
+
+    // --- LLAMADA AL BACKEND ---
+    setIsLoading(true);
+    setErrorServidor(null);
+
     try {
-      // Delega al servicio el manejo de la lógica de registro y captura cualquier error formateado por el adapter
-      const exito = await registerService(datos);
-      return exito;
-    } catch (err: any) {
-      // Atrapa el error formateado por el adapter del servicio 
-      setErrorGlobal(err.message);
-      return false;
+      // Usamos el servicio del Gerente que construimos (asegúrate de que UsuarioService espere estos campos)
+      const exito = await UsuarioService.crearUsuario(formData);
+      
+      if (exito) {
+        onSuccess(); // Se cierra el modal y se actualiza la tabla principal
+      }
+    } catch (error: any) {
+      setErrorServidor(error.message || 'Error al registrar el usuario.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return {
-    registrarUsuario,
-    loading,
-    errorGlobal
+    formData,
+    isLoading,
+    errorServidor,
+    erroresLocales,
+    handleChange,
+    handleSubmit
   };
 };
