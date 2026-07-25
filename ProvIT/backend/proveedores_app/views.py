@@ -79,16 +79,6 @@ class ProvITLoginView(TokenObtainPairView):
     """
     serializer_class  = ProvITTokenSerializer
     permission_classes = [AllowAny]
-
-class UsuarioRegistroView(generics.CreateAPIView):
-    """
-    POST registro/
-    Caso de Uso: Registrar un nuevo usuario.
-    Actor: Gerente
-    """
-    queryset = Usuario.objects.all()
-    serializer_class = UsuarioRegistroSerializer
-    permission_classes = [IsAuthenticated]
 # ===========================================================================
 # 4. CONTROLADORES DEL MÓDULO PROVEEDORES
 # ===========================================================================
@@ -599,23 +589,22 @@ class UsuarioEliminarView(APIView):
             return respuestaError(resultado['mensaje'], status.HTTP_404_NOT_FOUND)
 
 class UsuarioMetricasView(APIView):
-    """
-    GET /usuarios/metricas/
-    Obtiene los KPIs para las tarjetas superiores del dashboard de usuarios.
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Validación de seguridad: Solo el Gerente (rol 3) puede ver las métricas
-        if request.user.fk_rol.id_rol != 3:
-            return respuestaError("No tienes permisos de Gerente para acceder a las métricas.", status.HTTP_403_FORBIDDEN)
-
         try:
-            # Delegamos el cálculo a nuestro servicio
             data = ServicioUsuariosGerente.obtenerMetricas()
             return respuestaExitosa(data=data, mensaje="Métricas obtenidas correctamente.")
         except Exception as e:
-            return respuestaError(f"Error al calcular métricas: {str(e)}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # 🚀 ESTO EXPONDRÁ EL ERROR EXACTO EN TU PANTALLA O CONSOLA
+            import traceback
+            error_detallado = traceback.format_exc()
+            print("--- ERROR EN MÉTRICAS ---")
+            print(error_detallado)
+            return Response(
+                {"success": False, "errores": str(e), "detalles": error_detallado}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         
 class UsuarioEditarRolView(APIView):

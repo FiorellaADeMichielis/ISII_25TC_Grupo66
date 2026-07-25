@@ -12,6 +12,34 @@ class ServicioUsuariosGerente:
     filtrarUsuarios
     '''
     @classmethod
+    def obtenerMetricas(cls):
+        """
+        Calcula los KPIs necesarios para las tarjetas superiores del dashboard de usuarios.
+        Excluye al Gerente (fk_rol_id=3) para contar únicamente a los usuarios gestionados.
+        """
+        try:
+            # Filtramos la base base excluyendo al Gerente (id_rol = 3)
+            queryset_base = Usuario.objects.select_related('fk_rol').exclude(fk_rol_id=3)
+
+            total = queryset_base.count()
+            activos = queryset_base.filter(estado=True).count()
+            inactivos = queryset_base.filter(estado=False).count()
+            
+            # Contamos según el ID del rol (ajusta los IDs según tu base de datos: ej. 2=Admin, 1=Operador)
+            administradores = queryset_base.filter(fk_rol_id=2).count()
+            operadores = queryset_base.filter(fk_rol_id=1).count()
+
+            return {
+                "nombre": "Resumen de Usuarios",
+                "total": total,
+                "activos": activos,
+                "inactivos": inactivos,
+                "administradores": administradores,
+                "operadores": operadores
+            }
+        except Exception as e:
+            raise Exception(f"Error al calcular las métricas de usuarios: {str(e)}")
+    @classmethod
     def buscarUsuario(cls, termino_busqueda):
         """
         Busca usuarios por Nombre, Apellido o Correo.
@@ -88,16 +116,16 @@ class ServicioUsuariosGerente:
     
     @classmethod
     def agregarUsuario(cls, nombre, apellido, dni, correo, rol_id):
-        """
-        Añade un usuario nuevo.
-        Asigna el DNI como contraseña por defecto y lo encripta antes de guardarlo.
-        """
         try:
-            # Validación preventiva para no chocar con el "unique=True" del modelo
             if Usuario.objects.filter(correo_usuario=correo).exists():
                 return {'success': False, 'mensaje': 'El correo ya está registrado en el sistema.'}
             
-            # Encriptamos el DNI convertido a string
+            # Validamos opcionalmente que el rol exista antes de crear
+            try:
+                rol_obj = Rol.objects.get(pk=rol_id)
+            except Rol.DoesNotExist:
+                return {'success': False, 'mensaje': 'El rol seleccionado no es válido.'}
+
             password_hasheada = make_password(str(dni))
 
             nuevo_usuario = Usuario.objects.create(
@@ -106,12 +134,12 @@ class ServicioUsuariosGerente:
                 dni=dni,
                 correo_usuario=correo,
                 contrasena=password_hasheada,
-                fk_rol_id=rol_id,
-                estado=True  # Siempre nace activo
+                fk_rol=rol_obj,
+                estado=True
             )
             return {
                 'success': True, 
-                'mensaje': 'Usuario creado exitosamente. La contraseña temporal es su DNI.',
+                'mensaje': 'Usuario creado exitosamente.',
                 'id_usuario': nuevo_usuario.id_usuario
             }
         except Exception as e:
@@ -165,22 +193,3 @@ class ServicioUsuariosGerente:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
         except Exception as e:
             return {'success': False, 'mensaje': f'Error al actualizar el cargo: {e}'}
-
-    @classmethod
-    def obtenerMetricas(cls):
-        """
-        Calcula las estadísticas generales de los usuarios para las tarjetas (KPIs).
-        """
-        # Partimos de la base excluyendo al Gerente (rol 3)
-        base_qs = Usuario.objects.exclude(fk_rol_id=3)
-
-        # Hacemos los conteos directamente en la BD para máxima velocidad
-        return {
-            "nombre": "Usuarios del Sistema",
-            "total": base_qs.count(),
-            "activos": base_qs.filter(estado=True).count(),
-            "inactivos": base_qs.filter(estado=False).count(),
-            "administradores": base_qs.filter(fk_rol_id=2).count(),
-            "operadores": base_qs.filter(fk_rol_id=1).count(),
-            "estaCargando": False
-        }

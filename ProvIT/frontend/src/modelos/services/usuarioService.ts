@@ -3,6 +3,7 @@ import { api} from '../services/api';
 import type { APIResponse } from '../types/api.types';
 import type { Usuario } from '../types/usuarios.types';
 import type { MetricasUsuario } from '../types/metricas.types';
+import type { ApiResponse } from '../types/pedido.types';
 
 export const UsuarioService = {
   
@@ -38,9 +39,17 @@ export const UsuarioService = {
     // 3. Retornamos el array ya traducido. El resto de React ni se enterará del cambio.
     return usuariosFormateados;
   },
-  obtenerMetricas: async (): Promise<MetricasUsuario> => {
-    const respuesta = await api.get<APIResponse<MetricasUsuario>>('/usuarios/metricas/');
-    return respuesta.data.data;
+  // 2. OBTENER MÉTRICAS PARA EL DASHBOARD
+  obtenerMetricas: async (): Promise<MetricasUsuario | null> => {
+    try {
+
+      const { data } = await api.get<ApiResponse<MetricasUsuario>>('usuarios/metricas/');
+      
+      return data.success && data.data ? data.data : null;
+    } catch (error) {
+      console.error('Error al obtener métricas:', error);
+      return null;
+    }
   },
 
   crearUsuario: async (nuevoUsuario: Omit<Usuario, 'id_usuario'>): Promise<{id_usuario: number, mensaje: string}> => {

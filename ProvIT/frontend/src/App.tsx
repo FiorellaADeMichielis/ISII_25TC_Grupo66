@@ -46,6 +46,7 @@ export default function App() {
               {/* Solo Gerente */}
               <Route element={<ProtectedRoute allowedRoles={[ROLES.GERENTE]} />}>
                 <Route path="usuarios" element={<Usuarios />} />
+                <Route path="usuarios/registrar" element={<Usuarios />} />
               </Route>
 
             </Route>

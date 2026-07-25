@@ -33,39 +33,38 @@ export const loginService = async (credentials: LoginCredentials): Promise<AuthR
   }
 };
 
-// NUEVO: SERVICIO DE REGISTRO
+// SERVICIO DE REGISTRO / AGREGAR USUARIO (Módulo Gerente)
 export const registerService = async (data: RegisterData): Promise<boolean> => {
   try {
-    // Patrón Adapter: Traduce el modelo de la Vista al Modelo de Datos (Django)
-    // Esto oculta la estructura de la base de datos al componente de React.
+    // Patrón Adapter: Traduce el modelo de la Vista al Modelo de Datos que espera Django
     const payloadBackend = {
-      nombre_usuario: data.nombre,
-      apellido_usuario: data.apellido,
+      nombre: data.nombre,
+      apellido: data.apellido,
       dni: Number(data.dni),
-      correo_usuario: data.email,
-      contrasena: data.password,
+      correo: data.email,       
+      rol_id: Number(data.rol),
+      password: data.password,
     };
 
-    // Comunicación con el Controlador de Django
-    await api.post('/registro/', payloadBackend);
+    // 🚀 URL CORREGIDA: Apunta al endpoint protegido del Gerente
+    await api.post('/usuarios/registrar/', payloadBackend);
 
     // Si la petición es exitosa (201 Created), devuelve true
     return true;
 
   } catch (error: any) {
-    // 3. Captura y traducción de errores de validación (ej. Email ya existe)
+    // Captura y traducción de errores de validación (ej. Email ya existe o permisos insuficientes)
     if (error.response && error.response.data) {
-      // DRF suele devolver los errores así: {"correo_usuario": ["Este correo ya está en uso."]}
       const dataError = error.response.data;
       
-      // Extraemos el primer mensaje de error que encontremos para mostrarlo al usuario
-      const primerError = Object.values(dataError)[0];
-      const mensaje = Array.isArray(primerError) ? primerError[0] : primerError;
+      // Si el backend manda un mensaje general de error o un diccionario de campos
+      const mensaje = dataError.errores || dataError.mensaje || Object.values(dataError)[0];
+      const textoFinal = Array.isArray(mensaje) ? mensaje[0] : mensaje;
       
-      throw new Error(mensaje as string);
+      throw new Error(textoFinal as string || 'Error al procesar la solicitud.');
     }
     
-    // Error genérico si se cae el servidor o hay problema de red
+    // Error genérico de red o servidor caído
     throw new Error('Ocurrió un error al crear la cuenta. Por favor, intenta de nuevo.');
   }
 };

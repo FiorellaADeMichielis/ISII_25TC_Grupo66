@@ -14,7 +14,6 @@ from .views import (
     ProveedorListaView,
     ProveedorDetalleView,
     ProveedorReactivarView,
-    UsuarioRegistroView, 
     ProvITLoginView,
     EstadisticasFiltrosView,
     EstadisticasAnalisisProveedorView,
@@ -32,7 +31,6 @@ urlpatterns = [
                 # ==========================================
                 path("login/", ProvITLoginView.as_view(), name="token_obtain_pair"),
                 path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-                path("registro/", UsuarioRegistroView.as_view(), name="usuario_registro"),
 
                 # ==========================================
                 # MÓDULO PROVEEDORES: 
@@ -67,7 +65,7 @@ urlpatterns = [
 
                 # MÓDULO GERENTE - GESTION USUARIOS
                 path('usuarios/', UsuarioListarView.as_view(), name='listar_usuarios'),
-                path('usuarios/agregar/', UsuarioAgregarView.as_view(), name='agregar_usuario'),
+                path('usuarios/registar/', UsuarioAgregarView.as_view(), name='agregar_usuario'),
                 path('usuarios/<int:pk>/eliminar/', UsuarioEliminarView.as_view(), name='eliminar_usuario'),
                 path('usuarios/<int:pk>/editar-rol/', UsuarioEditarRolView.as_view(), name='editar_rol_usuario'),
                 path('usuarios/metricas/', UsuarioMetricasView.as_view(), name='metricas_usuarios')

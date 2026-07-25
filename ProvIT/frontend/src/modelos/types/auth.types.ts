@@ -22,5 +22,6 @@ export interface RegisterData {
   apellido: string;
   dni: number;
   email: string;
+  rol: RolId;
   password: string;
 }

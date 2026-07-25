@@ -16,14 +16,14 @@ from django.contrib.auth.hashers import make_password
 class UsuarioRegistroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ['nombre_usuario', 'apellido_usuario', 'dni', 'correo_usuario', 'contrasena']
+        fields = ['nombre_usuario', 'apellido_usuario', 'dni', 'fk_rol', 'correo_usuario', 'contrasena']
         extra_kwargs = {
             'contrasena': {'write_only': True} # Evita que la contraseña se devuelva en el JSON de respuesta
         }
     def create(self, validated_data):
         # Asigna un rol por defecto si no viene en el request
         try:
-            rol_por_defecto = Rol.objects.get(pk=1) 
+            rol_elegido = validated_data['fk_rol']
         except Rol.DoesNotExist:
             raise serializers.ValidationError("El rol por defecto no existe en la base de datos.")
         # Hasheamos la contraseña (Seguridad Crítica)
@@ -35,7 +35,7 @@ class UsuarioRegistroSerializer(serializers.ModelSerializer):
             dni=validated_data['dni'],
             correo_usuario=validated_data['correo_usuario'],
             contrasena=contrasena_hasheada,
-            fk_rol=rol_por_defecto,
+            fk_rol=rol_elegido,
             estado=True
         )
         return usuario
