@@ -30,3 +30,10 @@ export interface DatosMetricasUsuario {
     activos: number;
   };
 }
+export interface ErroresFormUsuario {
+  nombre?: string;
+  apellido?: string;
+  dni?: string;
+  email?: string;
+  general?: string;
+}
