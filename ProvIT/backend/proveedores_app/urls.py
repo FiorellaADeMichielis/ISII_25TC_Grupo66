@@ -18,6 +18,7 @@ from .views import (
     EstadisticasFiltrosView,
     EstadisticasAnalisisProveedorView,
     ProductoListaView,
+    UsuarioEditarView,
     UsuarioListarView,
     UsuarioAgregarView,
     UsuarioEliminarView,
@@ -63,9 +64,12 @@ urlpatterns = [
                 # MÓDULO PRODUCTOS
                 path("productos/", ProductoListaView.as_view(), name="productos-lista"),
 
+                # ==========================================
                 # MÓDULO GERENTE - GESTION USUARIOS
+                # ==========================================
                 path('usuarios/', UsuarioListarView.as_view(), name='listar_usuarios'),
                 path('usuarios/registrar/', UsuarioAgregarView.as_view(), name='agregar_usuario'),
+                path('usuarios/<int:pk>/', UsuarioEditarView.as_view(), name='editar_usuario'),
                 path('usuarios/<int:pk>/eliminar/', UsuarioEliminarView.as_view(), name='eliminar_usuario'),
                 path('usuarios/<int:pk>/editar-rol/', UsuarioEditarRolView.as_view(), name='editar_rol_usuario'),
                 path('usuarios/metricas/', UsuarioMetricasView.as_view(), name='metricas_usuarios')

@@ -32,7 +32,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from . import services, pedido_services
 from .models import Usuario, Producto
-from .serializers import UsuarioRegistroSerializer, ProductoSerializer, ProvITTokenSerializer
+from .serializers import UsuarioRegistroSerializer, ProductoSerializer, ProvITTokenSerializer, UsuarioUpdateSerializer
 from rest_framework import generics
 
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -608,8 +608,18 @@ class UsuarioMetricasView(APIView):
                 {"success": False, "errores": str(e), "detalles": error_detallado}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
         
+class UsuarioEditarView(generics.RetrieveUpdateAPIView):
+    """
+    Permite ver el detalle y actualizar los datos generales de un usuario 
+    excluyendo la contraseña.
+    """
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioUpdateSerializer
+    lookup_field = 'id_usuario'       # Columna real en la base de datos
+    lookup_url_kwarg = 'pk'           # Nombre del parámetro que viene en la URL (el <int:pk>)
+    permission_classes = [IsAuthenticated]
+    
 class UsuarioEditarRolView(APIView):
     """
     PATCH /api/gerente/usuarios/{pk}/editar-rol/
