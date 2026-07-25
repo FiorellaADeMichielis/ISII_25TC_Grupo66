@@ -5,7 +5,7 @@ import { type ModalFormulario } from '../../../../modelos/types/ui.types';
 
 export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) => {
   // Consumimos toda la lógica desde nuestro Hook controlador
-  const { formData, isLoading, errorServidor, handleChange, handleSubmit } = useModalRegistro(onClose);
+  const { formData, isLoading, errorServidor, handleChange, handleSubmit } = useModalRegistro(onSuccess);
 
   if (!isOpen) return null;
 
