@@ -1,11 +1,10 @@
 import { X, UserPlus, Shield, Mail, Badge, User } from 'lucide-react';
+// Asegúrate de que la ruta del hook sea la correcta según tu estructura
 import { useModalRegistro } from '../../../../modelos-vista/hooks/useRegistro';
 import { type ModalFormulario } from '../../../../modelos/types/ui.types';
 
-
 export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) => {
-  // Consumimos toda la lógica desde nuestro Hook controlador
-  const { formData, isLoading, errorServidor, handleChange, handleSubmit } = useModalRegistro(onSuccess);
+  const { formData, isLoading, errorServidor, erroresLocales, handleChange, handleSubmit } = useModalRegistro(onSuccess);
 
   if (!isOpen) return null;
 
@@ -37,6 +36,7 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           
+          {/* Error del Backend (Ej: El correo ya existe) */}
           {errorServidor && (
             <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
               {errorServidor}
@@ -44,11 +44,11 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Nombre */}
+            {/*Campo: Nombre */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Nombre</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <User className={`absolute left-3 top-1/2 -translate-y-1/2 ${erroresLocales.nombre ? 'text-red-400' : 'text-slate-400'}`} size={16} />
                 <input 
                   type="text" 
                   name="nombre"
@@ -56,12 +56,17 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
                   placeholder="Ej. Juan"
                   value={formData.nombre}
                   onChange={handleChange}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className={`w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    erroresLocales.nombre 
+                      ? 'border-red-500 focus:ring-red-500/20' 
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                  }`}
                 />
               </div>
+              {erroresLocales.nombre && <p className="mt-1 text-xs text-red-500 animate-in fade-in slide-in-from-top-1">{erroresLocales.nombre}</p>}
             </div>
 
-            {/* Apellido */}
+            {/*Campo: Apellido */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Apellido</label>
               <input 
@@ -71,17 +76,22 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
                 placeholder="Ej. Pérez"
                 value={formData.apellido}
                 onChange={handleChange}
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className={`w-full px-3 py-2 text-sm bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  erroresLocales.apellido 
+                    ? 'border-red-500 focus:ring-red-500/20' 
+                    : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                }`}
               />
+              {erroresLocales.apellido && <p className="mt-1 text-xs text-red-500 animate-in fade-in slide-in-from-top-1">{erroresLocales.apellido}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* DNI */}
+            {/*Campo: DNI */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">DNI (Contraseña Temporal)</label>
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">DNI (Contraseña)</label>
               <div className="relative">
-                <Badge className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <Badge className={`absolute left-3 top-1/2 -translate-y-1/2 ${erroresLocales.dni ? 'text-red-400' : 'text-slate-400'}`} size={16} />
                 <input 
                   type="number" 
                   name="dni"
@@ -89,12 +99,17 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
                   placeholder="Ej. 35123456"
                   value={formData.dni}
                   onChange={handleChange}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  className={`w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    erroresLocales.dni 
+                      ? 'border-red-500 focus:ring-red-500/20' 
+                      : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                  }`}
                 />
               </div>
+              {erroresLocales.dni && <p className="mt-1 text-xs text-red-500 animate-in fade-in slide-in-from-top-1">{erroresLocales.dni}</p>}
             </div>
 
-            {/* Rol / Cargo */}
+            {/* Campo: Rol */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Rol en el Sistema</label>
               <div className="relative">
@@ -112,11 +127,11 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
             </div>
           </div>
 
-          {/* Correo Electrónico */}
+          {/* Campo: Correo Electrónico */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Correo Electrónico</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 ${erroresLocales.email ? 'text-red-400' : 'text-slate-400'}`} size={16} />
               <input 
                 type="email" 
                 name="email"
@@ -124,9 +139,14 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
                 placeholder="juan.perez@provit.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className={`w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  erroresLocales.email 
+                    ? 'border-red-500 focus:ring-red-500/20' 
+                    : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-500'
+                }`}
               />
             </div>
+            {erroresLocales.email && <p className="mt-1 text-xs text-red-500 animate-in fade-in slide-in-from-top-1">{erroresLocales.email}</p>}
           </div>
 
           {/* Botones de Acción */}
@@ -156,7 +176,6 @@ export const ModalRegistro = ({ isOpen, onClose, onSuccess }: ModalFormulario) =
           </div>
 
         </form>
-
       </div>
     </div>
   );

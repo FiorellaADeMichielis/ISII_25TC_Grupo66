@@ -26,20 +26,40 @@ export const useModalRegistro = (onSuccess: () => void) => {
       setErroresLocales((prev) => ({ ...prev, [name]: '' }));
     }
   };
-
   // 3. Envío y Validación
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // --- VALIDACIONES LOCALES ---
+    // --- VALIDACIONES LOCALES (REGEX) ---
     const nuevosErrores: Record<string, string> = {};
-    if (formData.dni.length < 7 || formData.dni.length > 8) {
-      nuevosErrores.dni = 'El DNI debe tener entre 7 y 8 dígitos.';
+    
+    // Regla: Solo letras (incluye acentos, ñ y espacios)
+    const regexLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    
+    if (!regexLetras.test(formData.nombre.trim())) {
+      nuevosErrores.nombre = 'El nombre no admite números ni caracteres especiales.';
     }
     
+    if (!regexLetras.test(formData.apellido.trim())) {
+      nuevosErrores.apellido = 'El apellido no admite números ni caracteres especiales.';
+    }
+
+    // Regla: DNI exactamente de 8 dígitos numéricos
+    const regexDni = /^\d{8}$/;
+    if (!regexDni.test(formData.dni)) {
+      nuevosErrores.dni = 'El DNI debe contener exactamente 8 números.';
+    }
+
+    // Regla: Formato de correo válido (texto@texto.texto)
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regexEmail.test(formData.email.trim())) {
+      nuevosErrores.email = 'El formato del correo es inválido (ejemplo@provit.com).';
+    }
+    
+    // Si hay al menos un error, detenemos el envío y los mostramos en la UI
     if (Object.keys(nuevosErrores).length > 0) {
       setErroresLocales(nuevosErrores);
-      return; // Detenemos la ejecución si hay errores locales
+      return; 
     }
 
     // --- LLAMADA AL BACKEND ---
@@ -47,11 +67,10 @@ export const useModalRegistro = (onSuccess: () => void) => {
     setErrorServidor(null);
 
     try {
-      // Usamos el servicio del Gerente que construimos (asegúrate de que UsuarioService espere estos campos)
       const exito = await UsuarioService.crearUsuario(formData);
       
       if (exito) {
-        onSuccess(); // Se cierra el modal y se actualiza la tabla principal
+        onSuccess();
       }
     } catch (error: any) {
       setErrorServidor(error.message || 'Error al registrar el usuario.');
