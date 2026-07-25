@@ -2,7 +2,7 @@ import React from 'react';
 import { X, User, Badge, Shield, Mail } from 'lucide-react';
 import type { ErroresFormUsuario } from '../../../../modelos/types/usuarios.types';
 
-interface ModalEditarVistaProps {
+interface ModalEdicionUsuarioVistaProps {
   isOpen: boolean;
   onClose: () => void;
   formData: { nombre: string; apellido: string; dni: string; email: string; rol_id: string };
@@ -15,7 +15,7 @@ interface ModalEditarVistaProps {
 
 export const ModalEdicionUsuarioVista = ({
   isOpen, onClose, formData, errores, isSubmitting, nombreUsuario, onChangeData, onSubmit
-}: ModalEditarVistaProps) => {
+}: ModalEdicionUsuarioVistaProps) => {
   if (!isOpen) return null;
 
   const inputClass = (error?: string) => 

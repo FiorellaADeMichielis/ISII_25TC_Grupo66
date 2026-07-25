@@ -3,6 +3,7 @@ export type EstadoUsuario = 'activo' | 'inactivo' ;
 export interface Usuario {
   id: string;
   nombre: string;
+  dni: string;
   email: string;
   avatar: string;
   cargo: string;

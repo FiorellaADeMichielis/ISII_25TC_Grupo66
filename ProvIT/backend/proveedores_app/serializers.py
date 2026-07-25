@@ -43,15 +43,12 @@ class UsuarioRegistroSerializer(serializers.ModelSerializer):
 class UsuarioUpdateSerializer(serializers.ModelSerializer):
     """
     Serializa y valida la actualización de usuarios desde el panel de gerencia.
-    Mapea las llaves del frontend a los campos reales del modelo Usuario,
-    excluyendo la contraseña por motivos de seguridad corporativa.
     """
     nombre = serializers.CharField(source='nombre_usuario')
     apellido = serializers.CharField(source='apellido_usuario')
     correo = serializers.EmailField(source='correo_usuario')
     dni = serializers.IntegerField()
     
-    # Recibe el id del rol y lo vincula con la llave foránea del modelo Rol
     rol_id = serializers.PrimaryKeyRelatedField(
         queryset=Rol.objects.all(), 
         source='fk_rol'
@@ -63,7 +60,6 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id_usuario']
 
     def validate_dni(self, value):
-        """Valida que el DNI sea único excluyendo al usuario actual durante la edición."""
         qs = Usuario.objects.filter(dni=value)
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
@@ -72,7 +68,6 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_correo(self, value):
-        """Valida que el correo sea único excluyendo al usuario actual."""
         qs = Usuario.objects.filter(correo_usuario=value)
         if self.instance:
             qs = qs.exclude(pk=self.instance.pk)
@@ -81,15 +76,34 @@ class UsuarioUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        # Actualizamos explícitamente los campos modificados (la contraseña no se toca)
         instance.nombre_usuario = validated_data.get('nombre_usuario', instance.nombre_usuario)
         instance.apellido_usuario = validated_data.get('apellido_usuario', instance.apellido_usuario)
         instance.dni = validated_data.get('dni', instance.dni)
         instance.correo_usuario = validated_data.get('correo_usuario', instance.correo_usuario)
         instance.fk_rol = validated_data.get('fk_rol', instance.fk_rol)
-        
         instance.save()
         return instance
+
+    
+class UsuarioListSerializer(serializers.ModelSerializer):
+    """
+    Serializer para listar los usuarios en la tabla del frontend.
+    Incluye explícitamente el DNI y el nombre del rol asociado.
+    """
+    rol = serializers.CharField(source='fk_rol.nombre_rol', read_only=True)
+    
+    class Meta:
+        model = Usuario
+        fields = [
+            'id_usuario',
+            'nombre_usuario',
+            'apellido_usuario',
+            'dni',            
+            'correo_usuario',
+            'fk_rol',
+            'rol',
+            'estado'
+        ]
 # ---------------------------------------------------------------------------
 # Serializers de catálogos (sólo lectura, para los dropdowns del frontend)
 # ---------------------------------------------------------------------------

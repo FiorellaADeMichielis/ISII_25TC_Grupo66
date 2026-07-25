@@ -32,7 +32,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from . import services, pedido_services
 from .models import Usuario, Producto
-from .serializers import UsuarioRegistroSerializer, ProductoSerializer, ProvITTokenSerializer, UsuarioUpdateSerializer
+from .serializers import UsuarioListSerializer, UsuarioRegistroSerializer, ProductoSerializer, ProvITTokenSerializer, UsuarioUpdateSerializer
 from rest_framework import generics
 
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -519,11 +519,9 @@ class UsuarioListarView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Validación de seguridad: Solo el Gerente (rol 3) puede ver esta pantalla
         if request.user.fk_rol.id_rol != 3:
             return respuestaError("No tienes permisos de Gerente para acceder a esta información.", status.HTTP_403_FORBIDDEN)
 
-        # Usamos query_params propio de DRF en lugar de GET
         termino_busqueda = request.query_params.get('busqueda', None)
         estado = request.query_params.get('estado', None)
         rol_id = request.query_params.get('rol_id', None)
@@ -537,8 +535,8 @@ class UsuarioListarView(APIView):
         else:
             usuarios = ServicioUsuariosGerente.verUsuarios()
 
+        # retornar diccionarios limpios que entrega el servicio
         return respuestaExitosa(data=usuarios, mensaje="Lista de usuarios obtenida.")
-
 
 class UsuarioAgregarView(APIView):
     """
@@ -609,35 +607,41 @@ class UsuarioMetricasView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
-class UsuarioEditarView(generics.RetrieveUpdateAPIView):
+class UsuarioEditarView(APIView):
     """
-    Permite ver el detalle y actualizar los datos generales de un usuario 
+    PUT /api/usuarios/{pk}/
+    Permite actualizar los datos generales de un usuario (Nombre, Apellido, DNI, Correo, Rol)
     excluyendo la contraseña.
     """
-    queryset = Usuario.objects.all()
-    serializer_class = UsuarioUpdateSerializer
-    lookup_field = 'id_usuario'       # Columna real en la base de datos
-    lookup_url_kwarg = 'pk'           # Nombre del parámetro que viene en la URL (el <int:pk>)
-    permission_classes = [IsAuthenticated]
-    
-class UsuarioEditarRolView(APIView):
-    """
-    PATCH /api/gerente/usuarios/{pk}/editar-rol/
-    Modifica el Cargo (Rol) de un usuario.
-    """
     permission_classes = [IsAuthenticated]
 
-    def patch(self, request, pk):
+    def put(self, request, pk):
         if request.user.fk_rol.id_rol != 3:
-            return respuestaError("No tienes permisos para cambiar roles.", status.HTTP_403_FORBIDDEN)
+            return respuestaError("No tienes permisos para editar usuarios.", status.HTTP_403_FORBIDDEN)
 
-        nuevo_rol_id = request.data.get('nuevo_rol_id')
-        if not nuevo_rol_id:
-            return respuestaError("El campo 'nuevo_rol_id' es obligatorio.", status.HTTP_400_BAD_REQUEST)
+        # Extraemos los datos enviados por React
+        datos = request.data
+        nombre = datos.get('nombre')
+        apellido = datos.get('apellido')
+        dni = datos.get('dni')
+        correo = datos.get('correo')
+        rol_id = datos.get('rol_id')
 
-        resultado = ServicioUsuariosGerente.editarUsuario(pk, nuevo_rol_id)
+        # Validamos que se envíen todos los campos necesarios
+        if not all([nombre, apellido, dni, correo, rol_id]):
+            return respuestaError("Todos los campos (nombre, apellido, dni, correo, rol_id) son obligatorios.", status.HTTP_400_BAD_REQUEST)
+
+        # Delegamos la lógica al servicio
+        resultado = ServicioUsuariosGerente.editarUsuario(
+            usuario_id=pk,
+            nombre=nombre,
+            apellido=apellido,
+            dni=dni,
+            correo=correo,
+            rol_id=rol_id
+        )
         
         if resultado['success']:
-            return respuestaExitosa(data={'nuevo_rol': resultado['nuevo_rol']}, mensaje=resultado['mensaje'])
+            return respuestaExitosa(data=resultado['data'], mensaje=resultado['mensaje'])
         else:
             return respuestaError(resultado['mensaje'], status.HTTP_400_BAD_REQUEST)

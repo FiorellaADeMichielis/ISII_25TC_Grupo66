@@ -7,27 +7,34 @@ import type { ApiResponse } from '../types/pedido.types';
 
 export const UsuarioService = {
   
-  obtenerUsuarios: async (filtros?: { buscar?: string; estado?: boolean; rol_id?: number }): Promise<Usuario[]> => {
-    const params = {
-      busqueda: filtros?.buscar, 
-      estado: filtros?.estado,
-      rol_id: filtros?.rol_id
-    };
-    
-    const respuesta = await api.get<APIResponse<any[]>>('/usuarios/', { params });
-    
-    const usuariosFormateados: Usuario[] = respuesta.data.data.map((userBack) => ({
-      id: userBack.id_usuario.toString(),
-      nombre: userBack.nombre_completo,
-      email: userBack.correo_usuario,
-      cargo: userBack.rol_nombre || "Sin cargo",
-      rol: userBack.rol_nombre || "Sin rol",
-      estado: userBack.estado ? 'activo' : 'inactivo',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userBack.nombre_completo)}&background=random`,
-      ultimoLogin: "Sin registro" 
-    }));
+  obtenerUsuarios: async (filtros?: { buscar?: string }): Promise<Usuario[]> => {
+    try {
+      const response = await api.get('/usuarios/', { params: filtros });
+      let datosCrudos = [];
+      if (Array.isArray(response.data)) {
+        datosCrudos = response.data;
+      } else if (response.data && Array.isArray(response.data.results)) {
+        datosCrudos = response.data.results; // Caso paginación de DRF
+      } else if (response.data && Array.isArray(response.data.data)) {
+        datosCrudos = response.data.data;    // Caso respuesta envuelta en { data: [...] }
+      }
 
-    return usuariosFormateados;
+      // Mapeo seguro al contrato de React
+      return datosCrudos.map((item: any) => ({
+        id: item.id_usuario ? item.id_usuario.toString() : '',
+        nombre: `${item.nombre_usuario || ''} ${item.apellido_usuario || ''}`.trim(),
+        dni: item.dni ? item.dni.toString() : '',
+        email: item.correo_usuario || '',
+        avatar: item.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.correo_usuario || 'default'}`,
+        cargo: item.cargo || 'Sin cargo',
+        rol: item.fk_rol?.nombre_rol || (item.fk_rol === 2 ? 'Administrador' : 'Operador'),
+        estado: item.estado ? 'activo' : 'inactivo',
+        ultimoLogin: item.ultimo_login || 'Nunca'
+      }));
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+      return []; // Retorna vacío si falla para evitar que rompa la UI
+    }
   },
 
   obtenerMetricas: async (): Promise<MetricasUsuario | null> => {

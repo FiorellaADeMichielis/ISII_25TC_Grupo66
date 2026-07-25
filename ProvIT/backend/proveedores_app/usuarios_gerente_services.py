@@ -18,14 +18,12 @@ class ServicioUsuariosGerente:
         Excluye al Gerente (fk_rol_id=3) para contar únicamente a los usuarios gestionados.
         """
         try:
-            # Filtramos la base base excluyendo al Gerente (id_rol = 3)
             queryset_base = Usuario.objects.select_related('fk_rol').exclude(fk_rol_id=3)
 
             total = queryset_base.count()
             activos = queryset_base.filter(estado=True).count()
             inactivos = queryset_base.filter(estado=False).count()
             
-            # Contamos según el ID del rol (ajusta los IDs según tu base de datos: ej. 2=Admin, 1=Operador)
             administradores = queryset_base.filter(fk_rol_id=2).count()
             operadores = queryset_base.filter(fk_rol_id=1).count()
 
@@ -39,17 +37,12 @@ class ServicioUsuariosGerente:
             }
         except Exception as e:
             raise Exception(f"Error al calcular las métricas de usuarios: {str(e)}")
+
     @classmethod
     def buscarUsuario(cls, termino_busqueda):
-        """
-        Busca usuarios por Nombre, Apellido o Correo.
-        El operador | (OR) junto con Q permite buscar en múltiples columnas a la vez.
-        'icontains' ignora mayúsculas y minúsculas.
-        """
         if not termino_busqueda:
             return cls.verUsuarios()
 
-        # Primero excluimos al gerente, luego aplicamos los filtros de texto
         usuarios = Usuario.objects.select_related('fk_rol').exclude(fk_rol_id=3).filter(
             Q(nombre_usuario__icontains=termino_busqueda) |
             Q(apellido_usuario__icontains=termino_busqueda) |
@@ -60,20 +53,12 @@ class ServicioUsuariosGerente:
 
     @classmethod
     def filtrarUsuarios(cls, estado=None, rol_id=None):
-        """
-        Filtra la lista por Estado (1=Activo, 0=Inactivo) y/o Rol (1=Operador, 2=Administrador).
-        Permite aplicar uno o ambos filtros de manera dinámica.
-        """
-        # Partimos de la base de todos los usuarios
         queryset = Usuario.objects.select_related('fk_rol').exclude(fk_rol_id=3)
 
-        # Si se envió un filtro de estado, lo aplicamos
         if estado is not None:
-            # Convertimos a booleano: asume que si llega un '1' o True, es activo.
             es_activo = str(estado) == '1' or estado is True
             queryset = queryset.filter(estado=es_activo)
 
-        # Si se envió un filtro de rol, lo aplicamos
         if rol_id is not None:
             queryset = queryset.filter(fk_rol_id=rol_id)
 
@@ -82,45 +67,49 @@ class ServicioUsuariosGerente:
 
     @staticmethod
     def _formatear_usuario(usuario):
-        """
-        Método auxiliar privado para estandarizar la salida a diccionarios.
-        Facilita la conversión a JSON en las vistas (views.py).
-        """
+        # Manejo seguro por si el nombre del atributo del rol es 'nombre_rol' o 'nombre'
+        nombre_rol = "Sin rol"
+        if usuario.fk_rol:
+            nombre_rol = getattr(usuario.fk_rol, 'nombre_rol', getattr(usuario.fk_rol, 'nombre', "Sin rol"))
+
         return {
             'id_usuario': usuario.id_usuario,
-            'nombre_completo': f"{usuario.nombre_usuario} {usuario.apellido_usuario}",
+            'nombre_usuario': usuario.nombre_usuario,
+            'apellido_usuario': usuario.apellido_usuario,
+            'dni': usuario.dni,
             'correo_usuario': usuario.correo_usuario,
-            'estado': usuario.estado,  # True (1) = Activo, False (0) = Inactivo
-            'rol_id': usuario.fk_rol.id_rol if usuario.fk_rol else None,
-            'rol_nombre': usuario.fk_rol.nombre if usuario.fk_rol else "Sin rol"
+            'estado': usuario.estado,
+            'fk_rol': usuario.fk_rol.id_rol if usuario.fk_rol else None,
+            'rol': nombre_rol
         }
 
-    
-    """
-    #HU-7.1 Gestion Usuarios: CRUD GERENTE
-    Métodos de CRUD para la sección de Usuario en perfil Gerente:
-    verUsuarios
-    agregarUsuario(permite ingresar manualmente un usuario y asigna por default una contraseña con su DNI)
-    editarUsuario(modificar su Cargo o permisos en el sistema)
-    eliminarUsuario(baja lógica de Estado activo/inactivo, en inactivo se inhabilita el ingreso al sistema)
-     """
     @classmethod
     def verUsuarios(cls):
-        """
-        Trae toda la lista de usuarios.
-        Usa select_related para traer los datos del Rol en una sola consulta SQL (JOIN automático).
-        """
-        usuarios = Usuario.objects.select_related('fk_rol').exclude(fk_rol_id=3).order_by('id_usuario')
-        return [cls._formatear_usuario(u) for u in usuarios]
+        usuarios = Usuario.objects.select_related('fk_rol').all()
+        lista_resultado = []
+        for u in usuarios:
+            nombre_rol = "Sin rol"
+            if u.fk_rol:
+                nombre_rol = getattr(u.fk_rol, 'nombre_rol', getattr(u.fk_rol, 'nombre', "Sin rol"))
 
-    
+            lista_resultado.append({
+                "id_usuario": u.id_usuario,
+                "nombre_usuario": u.nombre_usuario,
+                "apellido_usuario": u.apellido_usuario,
+                "dni": u.dni,
+                "correo_usuario": u.correo_usuario,
+                "fk_rol": u.fk_rol.id_rol if u.fk_rol else None,
+                "rol": nombre_rol,
+                "estado": u.estado
+            })
+        return lista_resultado
+
     @classmethod
     def agregarUsuario(cls, nombre, apellido, dni, correo, rol_id):
         try:
             if Usuario.objects.filter(correo_usuario=correo).exists():
                 return {'success': False, 'mensaje': 'El correo ya está registrado en el sistema.'}
             
-            # Validamos opcionalmente que el rol exista antes de crear
             try:
                 rol_obj = Rol.objects.get(pk=rol_id)
             except Rol.DoesNotExist:
@@ -147,14 +136,8 @@ class ServicioUsuariosGerente:
 
     @classmethod
     def eliminarUsuario(cls, usuario_id):
-        """
-        Baja (y alta) lógica del usuario. 
-        Invierte el estado actual impidiendo o permitiendo su login.
-        """
         try:
             usuario = Usuario.objects.get(id_usuario=usuario_id)
-            
-            # Invertimos el estado (Baja/Alta lógica)
             usuario.estado = not usuario.estado 
             usuario.save()
             
@@ -168,28 +151,39 @@ class ServicioUsuariosGerente:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
 
     @classmethod
-    def editarUsuario(cls, usuario_id, nuevo_rol_id):
+    def editarUsuario(cls, usuario_id, nombre, apellido, dni, correo, rol_id):
         """
-        Modifica exclusivamente el Cargo (Rol) del usuario.
-        Ej: Pasa de Operador (1) a Administrador (2).
+        Actualiza los datos generales de un usuario (Nombre, Apellido, DNI, Correo, Rol)
+        excluyendo la contraseña por motivos de seguridad.
         """
         try:
-            # Traemos el usuario y su rol actual
-            usuario = Usuario.objects.select_related('fk_rol').get(id_usuario=usuario_id)
+            usuario = Usuario.objects.get(id_usuario=usuario_id)
             
-            # Actualizamos la clave foránea directamente
-            usuario.fk_rol_id = nuevo_rol_id
+            # Validar unicidad de DNI y Correo si cambiaron
+            if Usuario.objects.filter(dni=dni).exclude(id_usuario=usuario_id).exists():
+                return {'success': False, 'mensaje': 'El DNI ingresado ya se encuentra registrado en el sistema.'}
+            
+            if Usuario.objects.filter(correo_usuario=correo).exclude(id_usuario=usuario_id).exists():
+                return {'success': False, 'mensaje': 'El correo electrónico ya está en uso por otro usuario.'}
+
+            try:
+                rol_obj = Rol.objects.get(pk=rol_id)
+            except Rol.DoesNotExist:
+                return {'success': False, 'mensaje': 'El rol seleccionado no es válido.'}
+
+            usuario.nombre_usuario = nombre
+            usuario.apellido_usuario = apellido
+            usuario.dni = dni
+            usuario.correo_usuario = correo
+            usuario.fk_rol = rol_obj
             usuario.save()
-            
-            # Refrescamos desde la BD para devolver el nombre del nuevo rol al frontend
-            usuario.refresh_from_db()
             
             return {
                 'success': True,
-                'mensaje': 'Cargo actualizado correctamente.',
-                'nuevo_rol': usuario.fk_rol.nombre
+                'mensaje': 'Usuario actualizado exitosamente.',
+                'data': cls._formatear_usuario(usuario)
             }
         except Usuario.DoesNotExist:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
         except Exception as e:
-            return {'success': False, 'mensaje': f'Error al actualizar el cargo: {e}'}
+            return {'success': False, 'mensaje': f'Error al actualizar el usuario: {e}'}

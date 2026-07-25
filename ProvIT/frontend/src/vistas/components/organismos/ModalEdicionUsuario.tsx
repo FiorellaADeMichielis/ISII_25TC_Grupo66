@@ -28,15 +28,37 @@ export const ModalEdicionUsuario = ({
   const [errores, setErrores] = useState<ErroresFormUsuario>({});
 
   useEffect(() => {
+    // 🔍 DIAGNÓSTICO: Abre tu consola F12 en el navegador para ver qué llega aquí
+    console.log("🚀 [ModalEditarUsuario] usuarioEditando recibido:", usuarioEditando);
+
     if (usuarioEditando) {
-      const partesNombre = usuarioEditando.nombre.split(' ');
+      // 1. Manejo seguro del nombre y apellido (sea string unificado o separado)
+      const nombreCompleto = usuarioEditando.nombre || (usuarioEditando as any).nombre_usuario || '';
+      const partesNombre = nombreCompleto.trim().split(' ');
+      
+      const nombreVal = partesNombre[0] || '';
+      const apellidoVal = partesNombre.slice(1).join(' ') || (usuarioEditando as any).apellido_usuario || '';
+
+      // 2. Manejo seguro del DNI y Correo
+      const dniVal = usuarioEditando.dni || (usuarioEditando as any).dni?.toString() || '';
+      const emailVal = usuarioEditando.email || (usuarioEditando as any).correo_usuario || '';
+
+      // 3. Manejo seguro del Rol (Texto o ID)
+      let rolIdVal = '1';
+      const rolStr = String(usuarioEditando.rol || (usuarioEditando as any).fk_rol || '');
+      if (rolStr.toLowerCase().includes('admin') || rolStr === '2') {
+        rolIdVal = '2';
+      }
+
       setFormData({
-        nombre: partesNombre[0] || '',
-        apellido: partesNombre.slice(1).join(' ') || '',
-        dni: (usuarioEditando as any).dni?.toString() || '', // Recuperamos el DNI si viene en el objeto
-        email: usuarioEditando.email || '',
-        rol_id: usuarioEditando.rol === 'Administrador' ? '2' : '1',
+        nombre: nombreVal,
+        apellido: apellidoVal,
+        dni: dniVal,
+        email: emailVal,
+        rol_id: rolIdVal,
       });
+    } else {
+      setFormData(formInicial);
     }
     setErrores({});
   }, [usuarioEditando, isOpen]);
@@ -87,7 +109,11 @@ export const ModalEdicionUsuario = ({
 
     setErrores({});
     setIsSubmitting(true);
-    const resultado = await onGuardar(usuarioEditando.id, formData);
+    
+    // Obtenemos el ID correcto (puede venir como .id o .id_usuario)
+    const idUsuario = usuarioEditando.id || (usuarioEditando as any).id_usuario;
+    const resultado = await onGuardar(idUsuario, formData);
+    
     setIsSubmitting(false);
 
     if (resultado.exito) {
@@ -104,7 +130,7 @@ export const ModalEdicionUsuario = ({
       formData={formData}
       errores={errores}
       isSubmitting={isSubmitting}
-      nombreUsuario={usuarioEditando?.nombre}
+      nombreUsuario={usuarioEditando?.nombre || (usuarioEditando as any)?.nombre_usuario}
       onChangeData={handleChangeData}
       onSubmit={handleSubmit}
     />
