@@ -14,12 +14,11 @@ from .views import (
     EstadisticasFiltrosView,
     EstadisticasAnalisisProveedorView,
     ProductoListaView,
-    # 👇 VISTAS DE USUARIOS ACTUALIZADAS
     UsuarioListarView,
     UsuarioAgregarView,
     UsuarioEliminarView,
     UsuarioMetricasView,
-    UsuarioEditarView     # 👈 Importamos la vista unificada (eliminamos UsuarioEditarRolView)
+    UsuarioEditarView    
 )
 
 urlpatterns = [
