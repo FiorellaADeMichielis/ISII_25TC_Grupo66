@@ -39,32 +39,34 @@ class ServicioUsuariosGerente:
             raise Exception(f"Error al calcular las métricas de usuarios: {str(e)}")
 
     @classmethod
-    def buscarUsuario(cls, termino_busqueda):
-        if not termino_busqueda:
-            return cls.verUsuarios()
-
-        usuarios = Usuario.objects.select_related('fk_rol').exclude(fk_rol_id=3).filter(
-            Q(nombre_usuario__icontains=termino_busqueda) |
-            Q(apellido_usuario__icontains=termino_busqueda) |
-            Q(correo_usuario__icontains=termino_busqueda)
-        ).order_by('id_usuario')
-        
-        return [cls._formatear_usuario(u) for u in usuarios]
-
-    @classmethod
-    def filtrarUsuarios(cls, estado=None, rol_id=None):
+    def obtenerListaUsuarios(cls, termino=None, estado=None, rol_id=None):
+        """
+        Retorna la lista de usuarios. Permite combinar búsqueda de texto con 
+        filtros exactos de estado y rol al mismo tiempo.
+        """
         queryset = Usuario.objects.select_related('fk_rol').exclude(fk_rol_id=3)
 
-        if estado is not None:
-            es_activo = str(estado) == '1' or estado is True
+        # 1. Filtro por texto (Buscador)
+        if termino:
+            queryset = queryset.filter(
+                Q(nombre_usuario__icontains=termino) |
+                Q(apellido_usuario__icontains=termino) |
+                Q(correo_usuario__icontains=termino)
+            )
+            
+        # 2. Filtro por Estado 
+        if estado is not None and estado != '':
+            es_activo = str(estado) == '1' or str(estado).lower() == 'true'
             queryset = queryset.filter(estado=es_activo)
 
-        if rol_id is not None:
+        # 3. Filtro por Rol 
+        if rol_id is not None and rol_id != '':
             queryset = queryset.filter(fk_rol_id=rol_id)
 
         queryset = queryset.order_by('id_usuario')
         return [cls._formatear_usuario(u) for u in queryset]
 
+    
     @staticmethod
     def _formatear_usuario(usuario):
         # Manejo seguro por si el nombre del atributo del rol es 'nombre_rol' o 'nombre'

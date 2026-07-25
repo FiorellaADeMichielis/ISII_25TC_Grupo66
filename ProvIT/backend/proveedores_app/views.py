@@ -513,8 +513,8 @@ class ProductoListaView(generics.ListAPIView):
 
 class UsuarioListarView(APIView):
     """
-    GET /api/usuarios/
-    Obtiene todos los usuarios, con opciones de búsqueda y filtro.
+    GET /usuarios/
+    Obtiene todos los usuarios, combinando búsqueda por texto y filtros (estado/rol).
     """
     permission_classes = [IsAuthenticated]
 
@@ -522,20 +522,15 @@ class UsuarioListarView(APIView):
         if request.user.fk_rol.id_rol != 3:
             return respuestaError("No tienes permisos de Gerente para acceder a esta información.", status.HTTP_403_FORBIDDEN)
 
-        termino_busqueda = request.query_params.get('busqueda', None)
+        # 1. Leemos los parámetros exactos que envía React
+        termino = request.query_params.get('buscar', None)  
         estado = request.query_params.get('estado', None)
         rol_id = request.query_params.get('rol_id', None)
 
-        if termino_busqueda:
-            usuarios = ServicioUsuariosGerente.buscarUsuario(termino_busqueda)
-        elif estado is not None or rol_id is not None:
-            if rol_id:
-                rol_id = int(rol_id)
-            usuarios = ServicioUsuariosGerente.filtrarUsuarios(estado, rol_id)
-        else:
-            usuarios = ServicioUsuariosGerente.verUsuarios()
+        # 2. Delegamos TODO al nuevo método unificado del servicio
+        usuarios = ServicioUsuariosGerente.obtenerListaUsuarios(termino, estado, rol_id)
 
-        # retornar diccionarios limpios que entrega el servicio
+        # 3. Retornamos diccionarios limpios
         return respuestaExitosa(data=usuarios, mensaje="Lista de usuarios obtenida.")
 
 class UsuarioAgregarView(APIView):
