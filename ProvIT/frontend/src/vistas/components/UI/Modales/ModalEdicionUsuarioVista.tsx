@@ -28,7 +28,7 @@ export const ModalEdicionUsuarioVista = ({
         
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
               <User size={20} />
             </div>
             <div>
@@ -103,8 +103,8 @@ export const ModalEdicionUsuarioVista = ({
                     value={formData.rol_id}
                     onChange={(e) => onChangeData({ rol_id: e.target.value })}
                   >
-                    <option value="1">Operador (Rol 1)</option>
-                    <option value="2">Administrador (Rol 2)</option>
+                    <option value="1">Operador</option>
+                    <option value="2">Administrador</option>
                   </select>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export const ModalEdicionUsuarioVista = ({
             type="submit" 
             form="form-editar-usuario" 
             disabled={isSubmitting} 
-            className="px-5 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors shadow-sm disabled:opacity-50"
+            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors shadow-sm disabled:opacity-50"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
           </button>

@@ -91,7 +91,7 @@ export const Usuarios = () => {
               <Filter className="w-4 h-4" /> 
               Filtros Avanzados
               
-              {/* Indicador visual (ping) si hay filtros aplicados */}
+              {/* Indicador visual si hay filtros aplicados */}
               {(filtrosAvanzados.estado || filtrosAvanzados.rol_id) && (
                 <span className="flex h-2 w-2 relative ml-1">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
