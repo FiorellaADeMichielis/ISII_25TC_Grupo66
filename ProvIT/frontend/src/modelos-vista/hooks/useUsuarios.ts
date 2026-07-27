@@ -8,13 +8,11 @@ export const useUsuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [metricas, setMetricas] = useState<MetricasUsuario | null>(null);
   
-  // 🚀 Separamos la carga inicial de la recarga de fondo para evitar parpadeos
+  // Separa la carga inicial de la recarga de fondo para evitar parpadeos en la UI
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   
   const [busquedaQuery, setBusquedaQuery] = useState<string>('');
-  
-  // 🚀 Estado para los filtros combinados
   const [filtrosAvanzados, setFiltrosAvanzados] = useState({ estado: '', rol_id: '' });
 
   // Estados independientes para el Modal de Edición
@@ -22,9 +20,12 @@ export const useUsuarios = () => {
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
 
   const debouncedBusqueda = useDebounce<string>(busquedaQuery, 500);
+// Estados independientes para el Modal de Vista
+  const [isModalVistaOpen, setIsModalVistaOpen] = useState<boolean>(false);
+  const [usuarioViendo, setUsuarioViendo] = useState<Usuario | null>(null);
 
   const cargarDatos = useCallback(async () => {
-    // Activamos isFetching en lugar de isLoading para que la tabla no desaparezca al buscar
+    // Activa isFetching en lugar de isLoading para que la tabla no desaparezca al buscar
     setIsFetching(true); 
     try {
       const [datosUsuarios, datosMetricas] = await Promise.all([
