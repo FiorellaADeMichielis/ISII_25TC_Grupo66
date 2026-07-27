@@ -101,8 +101,19 @@ export const UsuarioService = {
     return respuesta.data.data.nuevo_rol;
   },
 
-  eliminarUsuario: async (id: number): Promise<boolean> => {
-    const respuesta = await api.patch<APIResponse<{nuevo_estado: boolean}>>(`/usuarios/${id}/eliminar/`);
-    return respuesta.data.data.nuevo_estado;
-  }
+  eliminarUsuario: async (id: string): Promise<void> => {
+    try {
+      // Como es una baja lógica (cambio de estado), usa PATCH
+      await api.patch(`/usuarios/${id}/eliminar/`);
+      
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        const dataError = error.response.data;
+        const mensaje = dataError.errores || dataError.mensaje || Object.values(dataError)[0];
+        const textoFinal = Array.isArray(mensaje) ? mensaje[0] : mensaje;
+        throw new Error(textoFinal as string || 'Error al procesar la baja del usuario.');
+      }
+      throw new Error('Ocurrió un error al conectar con el servidor.');
+    }
+  },
 };

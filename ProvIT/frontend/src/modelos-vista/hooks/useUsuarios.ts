@@ -12,18 +12,23 @@ export const useUsuarios = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   
+  // Estados para filtros y búsqueda
   const [busquedaQuery, setBusquedaQuery] = useState<string>('');
   const [filtrosAvanzados, setFiltrosAvanzados] = useState({ estado: '', rol_id: '' });
-
+  const debouncedBusqueda = useDebounce<string>(busquedaQuery, 500);
+  
   // Estados independientes para el Modal de Edición
   const [isModalEdicionOpen, setIsModalEdicionOpen] = useState<boolean>(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
 
-  const debouncedBusqueda = useDebounce<string>(busquedaQuery, 500);
-// Estados independientes para el Modal de Vista
+  // Estados independientes para el Modal de Detalles
   const [isModalDetallesOpen, setIsModalDetallesOpen] = useState<boolean>(false);
   const [usuarioViendo, setUsuarioViendo] = useState<Usuario | null>(null);
-  
+
+  // Estados independientes para el Modal de Eliminación
+  const [isModalEliminarOpen, setIsModalEliminarOpen] = useState<boolean>(false);
+  const [usuarioEliminando, setUsuarioEliminando] = useState<Usuario | null>(null);
+
   const cargarDatos = useCallback(async () => {
     // Activa isFetching en lugar de isLoading para que la tabla no desaparezca al buscar
     setIsFetching(true); 
@@ -84,17 +89,34 @@ export const useUsuarios = () => {
     console.log("Restablecer clave:", usuario.email);
   }, []);
 
-  const handleEliminarUsuario = useCallback((usuario: Usuario) => {
-    console.log("Eliminar usuario:", usuario.nombre);
-  }, []);
-
-  // Handlers de Vista
-  
+  // Handlers de Vista de Detalles
   const cerrarModalDetalles = useCallback(() => {
     setIsModalDetallesOpen(false);
     setUsuarioViendo(null);
   }, []);
 
+  // Handlers de Eliminación
+  const handleEliminarUsuario = useCallback((usuario: Usuario) => {
+    setUsuarioEliminando(usuario);
+    setIsModalEliminarOpen(true);
+  }, []);
+
+  const cerrarModalEliminar = useCallback(() => {
+    setIsModalEliminarOpen(false);
+    setUsuarioEliminando(null);
+  }, []);
+
+  const confirmarEliminacion = useCallback(async () => {
+    if (!usuarioEliminando) return;
+    try {
+      await UsuarioService.eliminarUsuario(usuarioEliminando.id); 
+      await cargarDatos(); 
+      cerrarModalEliminar(); 
+      return { exito: true };
+    } catch (error: any) {
+      return { exito: false, mensaje: error.message || 'Error al eliminar el usuario' };
+    }
+  }, [usuarioEliminando, cargarDatos, cerrarModalEliminar]);
   return {
     usuarios,
     metricas,
@@ -117,5 +139,9 @@ export const useUsuarios = () => {
     usuarioViendo,
     setUsuarioViendo,
     cerrarModalDetalles,
+    isModalEliminarOpen,
+    usuarioEliminando,
+    cerrarModalEliminar,
+    confirmarEliminacion,
   };
 };

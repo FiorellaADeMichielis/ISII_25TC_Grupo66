@@ -7,6 +7,7 @@ import { ModalEdicionUsuario } from '../components/organismos/ModalEdicionUsuari
 import { useUsuarios } from '../../modelos-vista/hooks/useUsuarios';
 import { useModal } from '../../modelos-vista/hooks/useModal'; 
 import { ModalDetallesUsuario } from '../components/organismos/ModalDetallesUsuario';
+import { ModalEliminarUsuario } from '../components/organismos/ModalEliminarUsuario';
 
 export const Usuarios = () => {
   // Estado local para mostrar u ocultar el panel de filtros
@@ -19,8 +20,8 @@ export const Usuarios = () => {
     isLoading, 
     isFetching,
     setBusquedaQuery,
-    filtrosAvanzados,          // 👈 Extraemos los filtros
-    setFiltrosAvanzados,       // 👈 Extraemos el actualizador de filtros
+    filtrosAvanzados,          
+    setFiltrosAvanzados,       
     handleVistaUsuario,
     abrirModalEdicion,         
     isModalEdicionOpen,        
@@ -30,9 +31,13 @@ export const Usuarios = () => {
     handleRestablecerContrasena,
     handleEliminarUsuario,
     cargarDatos,
-    isModalDetallesOpen,       // 👈 Estado del modal de detalles
+    isModalDetallesOpen,       
     usuarioViendo,     
-    cerrarModalDetalles,        // 👈 Función para cerrar el modal de detalles
+    cerrarModalDetalles,     
+    isModalEliminarOpen,
+    usuarioEliminando,
+    cerrarModalEliminar,
+    confirmarEliminacion
   } = useUsuarios();
 
   const modalRegistro = useModal();
@@ -195,6 +200,12 @@ export const Usuarios = () => {
         isOpen={isModalDetallesOpen}
         onClose={cerrarModalDetalles}
         usuario={usuarioViendo}
+      />
+      <ModalEliminarUsuario
+        isOpen={isModalEliminarOpen}
+        onClose={cerrarModalEliminar}
+        usuario={usuarioEliminando}
+        onConfirm={confirmarEliminacion}
       />
     </div>
   );
