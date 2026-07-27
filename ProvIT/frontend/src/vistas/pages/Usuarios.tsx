@@ -6,6 +6,7 @@ import { ModalRegistro } from '../components/UI/Modales/ModalRegistroVista';
 import { ModalEdicionUsuario } from '../components/organismos/ModalEdicionUsuario';
 import { useUsuarios } from '../../modelos-vista/hooks/useUsuarios';
 import { useModal } from '../../modelos-vista/hooks/useModal'; 
+import { ModalDetallesUsuario } from '../components/organismos/ModalDetallesUsuario';
 
 export const Usuarios = () => {
   // Estado local para mostrar u ocultar el panel de filtros
@@ -28,7 +29,10 @@ export const Usuarios = () => {
     handleGuardarEdicion,      
     handleRestablecerContrasena,
     handleEliminarUsuario,
-    cargarDatos
+    cargarDatos,
+    isModalDetallesOpen,       // 👈 Estado del modal de detalles
+    usuarioViendo,     
+    cerrarModalDetalles,        // 👈 Función para cerrar el modal de detalles
   } = useUsuarios();
 
   const modalRegistro = useModal();
@@ -187,7 +191,11 @@ export const Usuarios = () => {
         usuarioEditando={usuarioEditando}
         onGuardar={handleGuardarEdicion}
       />
-
+      <ModalDetallesUsuario
+        isOpen={isModalDetallesOpen}
+        onClose={cerrarModalDetalles}
+        usuario={usuarioViendo}
+      />
     </div>
   );
 };

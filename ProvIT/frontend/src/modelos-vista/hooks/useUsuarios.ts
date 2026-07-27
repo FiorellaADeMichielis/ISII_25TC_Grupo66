@@ -21,9 +21,9 @@ export const useUsuarios = () => {
 
   const debouncedBusqueda = useDebounce<string>(busquedaQuery, 500);
 // Estados independientes para el Modal de Vista
-  const [isModalVistaOpen, setIsModalVistaOpen] = useState<boolean>(false);
+  const [isModalDetallesOpen, setIsModalDetallesOpen] = useState<boolean>(false);
   const [usuarioViendo, setUsuarioViendo] = useState<Usuario | null>(null);
-
+  
   const cargarDatos = useCallback(async () => {
     // Activa isFetching en lugar de isLoading para que la tabla no desaparezca al buscar
     setIsFetching(true); 
@@ -41,8 +41,8 @@ export const useUsuarios = () => {
     } catch (error) {
       console.error("Error al cargar los datos:", error);
     } finally {
-      setIsLoading(false); // Apagamos la carga inicial (pantalla completa) para siempre
-      setIsFetching(false); // Apagamos el indicador de búsqueda de fondo
+      setIsLoading(false); 
+      setIsFetching(false); 
     }
   }, [debouncedBusqueda, filtrosAvanzados]); 
 
@@ -75,7 +75,9 @@ export const useUsuarios = () => {
   }, [cargarDatos]);
 
   const handleVistaUsuario = useCallback((usuario: Usuario) => {
-    console.log("Ver detalles:", usuario.nombre);
+    console.log("Ver detalles del usuario:", usuario.nombre);
+    setUsuarioViendo(usuario);         
+    setIsModalDetallesOpen(true);     
   }, []);
 
   const handleRestablecerContrasena = useCallback((usuario: Usuario) => {
@@ -84,6 +86,13 @@ export const useUsuarios = () => {
 
   const handleEliminarUsuario = useCallback((usuario: Usuario) => {
     console.log("Eliminar usuario:", usuario.nombre);
+  }, []);
+
+  // Handlers de Vista
+  
+  const cerrarModalDetalles = useCallback(() => {
+    setIsModalDetallesOpen(false);
+    setUsuarioViendo(null);
   }, []);
 
   return {
@@ -103,6 +112,10 @@ export const useUsuarios = () => {
     handleVistaUsuario,
     handleRestablecerContrasena,
     handleEliminarUsuario,
-    cargarDatos
+    cargarDatos,
+    isModalDetallesOpen,
+    usuarioViendo,
+    setUsuarioViendo,
+    cerrarModalDetalles,
   };
 };
