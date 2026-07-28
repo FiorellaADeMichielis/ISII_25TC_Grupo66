@@ -214,6 +214,7 @@ class ServicioUsuariosGerente:
                 'mensaje': 'Usuario actualizado exitosamente.',
                 'data': cls._formatear_usuario(usuario)
             }
+            
         except Usuario.DoesNotExist:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
         except Exception as e:

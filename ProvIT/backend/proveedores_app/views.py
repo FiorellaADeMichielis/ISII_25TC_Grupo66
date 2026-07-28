@@ -612,7 +612,6 @@ class UsuarioMetricasView(APIView):
             data = ServicioUsuariosGerente.obtenerMetricas()
             return respuestaExitosa(data=data, mensaje="Métricas obtenidas correctamente.")
         except Exception as e:
-            # 🚀 ESTO EXPONDRÁ EL ERROR EXACTO EN TU PANTALLA O CONSOLA
             import traceback
             error_detallado = traceback.format_exc()
             print("--- ERROR EN MÉTRICAS ---")
