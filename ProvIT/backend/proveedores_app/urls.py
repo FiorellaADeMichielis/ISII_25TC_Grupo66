@@ -18,7 +18,8 @@ from .views import (
     UsuarioAgregarView,
     UsuarioEliminarView,
     UsuarioMetricasView,
-    UsuarioEditarView    
+    UsuarioEditarView,
+    UsuarioReactivarView    
 )
 
 urlpatterns = [
@@ -61,5 +62,6 @@ urlpatterns = [
     path('usuarios/registrar/', UsuarioAgregarView.as_view(), name='agregar_usuario'),
     path('usuarios/<int:pk>/', UsuarioEditarView.as_view(), name='editar_usuario'),
     path('usuarios/<int:pk>/eliminar/', UsuarioEliminarView.as_view(), name='eliminar_usuario'),
+    path('usuarios/<int:pk>/reactivar/', UsuarioReactivarView.as_view(), name='reactivar_usuario'),
     path('usuarios/metricas/', UsuarioMetricasView.as_view(), name='metricas_usuarios')
 ]

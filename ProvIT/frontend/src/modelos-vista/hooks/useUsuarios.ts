@@ -25,9 +25,10 @@ export const useUsuarios = () => {
   const [isModalDetallesOpen, setIsModalDetallesOpen] = useState<boolean>(false);
   const [usuarioViendo, setUsuarioViendo] = useState<Usuario | null>(null);
 
-  // Estados independientes para el Modal de Eliminación
-  const [isModalEliminarOpen, setIsModalEliminarOpen] = useState<boolean>(false);
-  const [usuarioEliminando, setUsuarioEliminando] = useState<Usuario | null>(null);
+  // Estados unificados para el Modal de Cambio de Estado (Inactivar / Reactivar)
+  const [isModalEstadoOpen, setIsModalEstadoOpen] = useState<boolean>(false);
+  const [usuarioEstado, setUsuarioEstado] = useState<Usuario | null>(null);
+  const [accionEstado, setAccionEstado] = useState<'inactivar' | 'reactivar'>('inactivar');
 
   const cargarDatos = useCallback(async () => {
     // Activa isFetching en lugar de isLoading para que la tabla no desaparezca al buscar
@@ -95,28 +96,35 @@ export const useUsuarios = () => {
     setUsuarioViendo(null);
   }, []);
 
-  // Handlers de Eliminación
-  const handleEliminarUsuario = useCallback((usuario: Usuario) => {
-    setUsuarioEliminando(usuario);
-    setIsModalEliminarOpen(true);
+  // 🚀 Handlers unificados de Cambio de Estado
+  const handleToggleEstado = useCallback((usuario: Usuario, accion: 'inactivar' | 'reactivar') => {
+    setUsuarioEstado(usuario);
+    setAccionEstado(accion);
+    setIsModalEstadoOpen(true);
   }, []);
 
-  const cerrarModalEliminar = useCallback(() => {
-    setIsModalEliminarOpen(false);
-    setUsuarioEliminando(null);
+  const cerrarModalEstado = useCallback(() => {
+    setIsModalEstadoOpen(false);
+    setUsuarioEstado(null);
   }, []);
 
-  const confirmarEliminacion = useCallback(async () => {
-    if (!usuarioEliminando) return;
+  const confirmarCambioEstado = useCallback(async () => {
+    if (!usuarioEstado) return;
     try {
-      await UsuarioService.eliminarUsuario(usuarioEliminando.id); 
+      if (accionEstado === 'inactivar') {
+        await UsuarioService.eliminarUsuario(usuarioEstado.id); 
+      } else {
+        await UsuarioService.reactivarUsuario(usuarioEstado.id); 
+      }
+      
       await cargarDatos(); 
-      cerrarModalEliminar(); 
+      cerrarModalEstado(); 
       return { exito: true };
     } catch (error: any) {
-      return { exito: false, mensaje: error.message || 'Error al eliminar el usuario' };
+      return { exito: false, mensaje: error.message || 'Error al cambiar el estado del usuario' };
     }
-  }, [usuarioEliminando, cargarDatos, cerrarModalEliminar]);
+  }, [usuarioEstado, accionEstado, cargarDatos, cerrarModalEstado]);
+
   return {
     usuarios,
     metricas,
@@ -133,15 +141,18 @@ export const useUsuarios = () => {
     handleGuardarEdicion,
     handleVistaUsuario,
     handleRestablecerContrasena,
-    handleEliminarUsuario,
     cargarDatos,
     isModalDetallesOpen,
     usuarioViendo,
     setUsuarioViendo,
     cerrarModalDetalles,
-    isModalEliminarOpen,
-    usuarioEliminando,
-    cerrarModalEliminar,
-    confirmarEliminacion,
+    
+    // variables de Cambio de Estado
+    handleToggleEstado,
+    isModalEstadoOpen,
+    usuarioEstado,
+    accionEstado,
+    cerrarModalEstado,
+    confirmarCambioEstado,
   };
 };

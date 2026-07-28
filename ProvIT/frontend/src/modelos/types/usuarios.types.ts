@@ -14,11 +14,12 @@ export interface Usuario {
 
 export interface TablaUsuarioProps {
   users: Usuario[];
-  onEdit: (user: Usuario) => void;
-  onDelete: (user: Usuario) => void;
-  onResetPassword: (user: Usuario) => void;
-  onView: (user: Usuario) => void;
+  onView: (usuario: Usuario) => void;
+  onEdit: (usuario: Usuario) => void;
+  onResetPassword: (usuario: Usuario) => void;
+  onToggleStatus: (usuario: Usuario, accion: 'inactivar' | 'reactivar') => void;
 }
+
 export interface DatosMetricasUsuario {
   total: number;
   activos: number;

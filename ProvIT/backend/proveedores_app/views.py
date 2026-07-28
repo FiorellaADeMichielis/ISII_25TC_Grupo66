@@ -567,9 +567,8 @@ class UsuarioAgregarView(APIView):
 
 class UsuarioEliminarView(APIView):
     """
-    PATCH /api/gerente/usuarios/{pk}/eliminar/
-    Realiza la baja/alta lógica del usuario (toggle de estado).
-    Usamos PATCH porque modifica parcialmente el objeto.
+    PATCH /api/usuarios/{pk}/eliminar/
+    Realiza la baja lógica del usuario (Fuerza el estado a False).
     """
     permission_classes = [IsAuthenticated]
 
@@ -577,13 +576,34 @@ class UsuarioEliminarView(APIView):
         if request.user.fk_rol.id_rol != 3:
             return respuestaError("No tienes permisos para inhabilitar usuarios.", status.HTTP_403_FORBIDDEN)
 
+        # Llama explícitamente a la baja lógica
         resultado = ServicioUsuariosGerente.eliminarUsuario(pk)
         
         if resultado['success']:
             return respuestaExitosa(data={'nuevo_estado': resultado['nuevo_estado']}, mensaje=resultado['mensaje'])
         else:
-            return respuestaError(resultado['mensaje'], status.HTTP_404_NOT_FOUND)
+            # Mandamos 400 porque podría ser que no exista o que ya esté inactivo
+            return respuestaError(resultado['mensaje'], status.HTTP_400_BAD_REQUEST)
 
+class UsuarioReactivarView(APIView):
+    """
+    PATCH /api/usuarios/{pk}/reactivar/
+    Realiza el alta lógica del usuario (Fuerza el estado a True).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        if request.user.fk_rol.id_rol != 3:
+            return respuestaError("No tienes permisos para reactivar usuarios.", status.HTTP_403_FORBIDDEN)
+
+        # Llama explícitamente al alta lógica
+        resultado = ServicioUsuariosGerente.reactivarUsuario(pk)
+        
+        if resultado['success']:
+            return respuestaExitosa(data={'nuevo_estado': resultado['nuevo_estado']}, mensaje=resultado['mensaje'])
+        else:
+            return respuestaError(resultado['mensaje'], status.HTTP_400_BAD_REQUEST)
+        
 class UsuarioMetricasView(APIView):
     permission_classes = [IsAuthenticated]
 

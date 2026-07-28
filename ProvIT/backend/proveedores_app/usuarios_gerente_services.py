@@ -138,20 +138,49 @@ class ServicioUsuariosGerente:
 
     @classmethod
     def eliminarUsuario(cls, usuario_id):
+        """
+        Baja lógica: Fuerza el estado a False (Inactivo).
+        """
         try:
             usuario = Usuario.objects.get(id_usuario=usuario_id)
-            usuario.estado = not usuario.estado 
+            
+            # Seguridad: Si ya está inactivo, no hacemos nada
+            if not usuario.estado:
+                return {'success': False, 'mensaje': 'El usuario ya se encuentra inactivo.'}
+
+            usuario.estado = False 
             usuario.save()
             
-            accion = "inactivado" if not usuario.estado else "reactivado"
             return {
                 'success': True,
-                'mensaje': f'Usuario {accion} correctamente.',
+                'mensaje': 'Usuario inactivado correctamente.',
                 'nuevo_estado': usuario.estado
             }
         except Usuario.DoesNotExist:
             return {'success': False, 'mensaje': 'El usuario no existe.'}
 
+    @classmethod
+    def reactivarUsuario(cls, usuario_id):
+        """
+        Alta lógica: Fuerza el estado a True (Activo).
+        """
+        try:
+            usuario = Usuario.objects.get(id_usuario=usuario_id)
+            
+            # Seguridad: Si ya está activo, no hacemos nada
+            if usuario.estado:
+                return {'success': False, 'mensaje': 'El usuario ya se encuentra activo.'}
+
+            usuario.estado = True 
+            usuario.save()
+            
+            return {
+                'success': True,
+                'mensaje': 'Usuario reactivado correctamente.',
+                'nuevo_estado': usuario.estado
+            }
+        except Usuario.DoesNotExist:
+            return {'success': False, 'mensaje': 'El usuario no existe.'}
     @classmethod
     def editarUsuario(cls, usuario_id, nombre, apellido, dni, correo, rol_id):
         """

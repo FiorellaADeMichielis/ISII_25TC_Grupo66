@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { MoreVertical, Edit2, Trash2, Key, Eye } from 'lucide-react';
-import type { Usuario, EstadoUsuario, TablaUsuarioProps } from '../../../../modelos/types/usuarios.types'; // Asumiendo que las interfaces están aquí o en models/
+import { MoreVertical, Edit2, Trash2, Eye, RefreshCcw } from 'lucide-react';
+import type { Usuario, EstadoUsuario, TablaUsuarioProps } from '../../../../modelos/types/usuarios.types'; 
 
-export function TablaUsuarios({ users, onEdit, onDelete, onResetPassword, onView }: TablaUsuarioProps) {
+export function TablaUsuarios({ users, onEdit, onToggleStatus, onView }: TablaUsuarioProps) {
   // Estado local para interacciones de la UI
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -141,12 +141,24 @@ export function TablaUsuarios({ users, onEdit, onDelete, onResetPassword, onView
                       >
                         <Edit2 className="w-4 h-4 text-slate-400" /> Editar
                       </button>                        
-                      <button 
-                        onClick={() => { onDelete(user); setActiveMenu(null); }} 
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-400" /> Eliminar
-                      </button>
+                      
+                      {/* 👇 BOTÓN DINÁMICO INACTIVAR/REACTIVAR */}
+                      {user.estado === 'activo' ? (
+                        <button 
+                          onClick={() => { onToggleStatus(user, 'inactivar'); setActiveMenu(null); }} 
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-400" /> Eliminar
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => { onToggleStatus(user, 'reactivar'); setActiveMenu(null); }} 
+                          className="w-full text-left px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 flex items-center gap-2"
+                        >
+                          <RefreshCcw className="w-4 h-4 text-emerald-400" /> Reactivar
+                        </button>
+                      )}
+
                     </div>
                   )}
                 </td>

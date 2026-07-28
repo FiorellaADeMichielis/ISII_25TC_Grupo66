@@ -116,4 +116,18 @@ export const UsuarioService = {
       throw new Error('Ocurrió un error al conectar con el servidor.');
     }
   },
+
+  reactivarUsuario: async (id: string): Promise<void> => {
+    try {
+      await api.patch(`/usuarios/${id}/reactivar/`);
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        const dataError = error.response.data;
+        const mensaje = dataError.errores || dataError.mensaje || Object.values(dataError)[0];
+        const textoFinal = Array.isArray(mensaje) ? mensaje[0] : mensaje;
+        throw new Error(textoFinal as string || 'Error al reactivar el usuario.');
+      }
+      throw new Error('Ocurrió un error al conectar con el servidor.');
+    }
+  },
 };
