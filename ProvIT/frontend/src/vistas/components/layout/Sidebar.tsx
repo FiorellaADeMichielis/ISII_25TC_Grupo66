@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, Settings, LogOut, UserCog } from "lucide-react";
+import { LayoutDashboard, UserCog, Settings, LogOut, BarChart3 } from "lucide-react"; 
 import { useSidebar } from "../../../modelos-vista/hooks/useSidebar";
 import type { MenuItem } from "../../../modelos/types/layout.types";
 
@@ -7,9 +7,8 @@ const SIZE = 20;
 
 function NavIcon({ iconName }: { iconName: MenuItem["iconName"] }) {
   switch (iconName) {
-    case "estadisticas":      return <LayoutDashboard size={SIZE} />;
-    case "proveedores":   return <Users size={SIZE} />;
-    case "pedidos":      return <FileText size={SIZE} />;
+    case "estadisticas":  return <LayoutDashboard size={SIZE} />;
+    case "reportes":      return <BarChart3 size={SIZE} />; 
     case "usuarios":      return <UserCog size={SIZE} />;
     case "configuracion": return <Settings size={SIZE} />;
     default:              return <Settings size={SIZE} />;

@@ -9,6 +9,7 @@ import { Proveedores }   from "./vistas/pages/Proveedores";
 import { Pedidos }      from "./vistas/pages/Pedidos";
 import { Usuarios }      from "./vistas/pages/Usuarios";
 import { Configuracion } from "./vistas/pages/Configuracion";
+import { Reportes } from "./vistas/pages/Reportes";
 
 const TODOS = [ROLES.OPERADOR, ROLES.ADMINISTRADOR, ROLES.GERENTE];
 
@@ -44,6 +45,8 @@ export default function App() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.GERENTE]} />}>
                 <Route path="usuarios" element={<Usuarios />} />
                 <Route path="usuarios/registrar" element={<Usuarios />} />
+                <Route path="usuarios/:id/editar" element={<Usuarios />} />
+                <Route path="reportes" element={<Reportes />} />
               </Route>
 
             </Route>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Reporte, FiltrosReporte, FormatoExportacion, AutorReporte } from '../../modelos/types/reportes.types';
 import { ReporteService } from '../../modelos/services/reportesService';
-import { useDebounce } from './useDebounce'; // Asumimos que ya tenés este hook
+import { useDebounce } from './useDebounce';
 
 export const useReportes = () => {
   const [reportes, setReportes] = useState<Reporte[]>([]);
@@ -59,7 +59,6 @@ export const useReportes = () => {
     try {
       const { exito, mensaje } = await ReporteService.exportarReporte(id, formato);
       if (exito) {
-        // Acá a futuro podés enganchar tu sistema de notificaciones (ej: toast.success(mensaje))
         alert(mensaje); 
       }
     } catch (error) {
