@@ -55,6 +55,11 @@ urlpatterns = [
     # ==========================================
     path("productos/", ProductoListaView.as_view(), name="productos-lista"),
 
+    #=========================================
+    # MÓDULO REPORTES
+    #=========================================
+    path("reportes/", ReportesListaView.as_view(), name="reportes-lista"),
+
     # ==========================================
     # MÓDULO GERENTE - GESTIÓN USUARIOS
     # ==========================================
