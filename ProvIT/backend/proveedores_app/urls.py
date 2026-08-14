@@ -1,29 +1,13 @@
 """
 Descripción: Definición de rutas de la API.
 """
-
 from django.urls import path
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-from .views import (
-    PedidoCambiarEstadoView,
-    PedidoListaView,
-    PedidoRegistrarEntregaView,
-    ProveedorListaView,
-    ProveedorDetalleView,
-    ProveedorReactivarView,
-    UsuarioRegistroView, 
-    ProvITLoginView,
-    EstadisticasFiltrosView,
-    EstadisticasAnalisisProveedorView,
-    ProductoListaView,
-    UsuarioListarView,
-    UsuarioAgregarView,
-    UsuarioEliminarView,
-    UsuarioEditarView
-)
+from rest_framework_simplejwt.views import ( TokenObtainPairView, TokenRefreshView )
+from .views.permisos_helpers_views import (UsuarioRegistroView, ProvITLoginView, ProductoListaView )
+from .views.estadisticas_views import (EstadisticasFiltrosView, EstadisticasAnalisisProveedorView)
+from .views.proveedor_views import (ProveedorListaView, ProveedorDetalleView, ProveedorReactivarView)
+from .views.pedido_views import (PedidoCambiarEstadoView, PedidoListaView, PedidoRegistrarEntregaView)
+from .views.gerente_views import (UsuarioListarView, UsuarioAgregarView, UsuarioEliminarView, UsuarioEditarView)
 
 urlpatterns = [
                 # ==========================================

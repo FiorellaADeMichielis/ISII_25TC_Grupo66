@@ -4,7 +4,7 @@ from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError
 
 from proveedores_app.models import Proveedor, Producto, Categoria, ProveedorProducto, Pedido, DetallePedido, Usuario, Rol
-from proveedores_app.estadisticas_services import (
+from ProvIT.backend.proveedores_app.services.estadisticas_services import (
     EstrategiaVelocidad,
     EstrategiaPrecio,
     EstrategiaCalidad,

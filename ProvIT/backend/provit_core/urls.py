@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse
 
-from proveedores_app.views import LocalidadListaView, ProvinciaListaView
+from ProvIT.backend.proveedores_app.views.permisos_helpers_views import LocalidadListaView, ProvinciaListaView
 
 urlpatterns = [
     path('admin/', admin.site.urls),

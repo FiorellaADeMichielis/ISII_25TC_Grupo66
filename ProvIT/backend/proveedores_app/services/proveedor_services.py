@@ -19,10 +19,10 @@ Funciones con nombres alineado a Casos de Uso:
  
 from django.db import transaction
 from rest_framework.exceptions import NotFound, ValidationError
-from .models import Proveedor
-from .serializers import ProveedorSerializer, ProveedorWriteSerializer
-from .models import Provincia, Localidad
-from .serializers import ProvinciaSerializer, LocalidadSerializer
+from ..models import Proveedor
+from ..serializers import ProveedorSerializer, ProveedorWriteSerializer
+from ..models import Provincia, Localidad
+from ..serializers import ProvinciaSerializer, LocalidadSerializer
 
 def verProvincias():
     """Devuelve todas las provincias ordenadas alfabéticamente."""

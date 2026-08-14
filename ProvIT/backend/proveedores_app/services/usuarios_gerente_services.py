@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django.contrib.auth.hashers import make_password
-from .models import Usuario, Rol
+from ..models import Usuario, Rol
 
 class ServicioUsuariosGerente:
 
