@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import date
-from .models import Pedido, DetallePedido, Proveedor, Producto
+from ..models import Pedido, DetallePedido, Proveedor, Producto
 
 def verPedidos():
     """

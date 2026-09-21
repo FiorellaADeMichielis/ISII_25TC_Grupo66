@@ -29,7 +29,7 @@ from typing import Optional
 from django.db.models import Avg, Min, Max
 from rest_framework.exceptions import NotFound
 
-from .models import (
+from ..models import (
     Proveedor,
     Producto,
     ProveedorProducto,
