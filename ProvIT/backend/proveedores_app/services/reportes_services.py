@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from ..models import Reporte, TipoReporte, Proveedor, Usuario
-from services.estadisticas_services import ServicioAnalisisCompras
+from .estadisticas_services import ServicioAnalisisCompras
 
 # =============================================================================
 # PATRÓN TEMPLATE METHOD - Clases para Listar Reportes

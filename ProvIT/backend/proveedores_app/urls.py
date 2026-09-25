@@ -35,6 +35,12 @@ from .views.gerente_views import (
     UsuarioReactivarView,
     UsuarioMetricasView,
 )
+from .views.reportes_views import (
+    ReporteListarView,
+    ReporteGuardarView,
+    ReporteDetalleView,
+    ReporteExportarPDFView
+)
 
 urlpatterns = [
     # ==========================================
@@ -79,4 +85,11 @@ urlpatterns = [
     path('usuarios/<int:pk>/eliminar/', UsuarioEliminarView.as_view(), name='eliminar_usuario'),
     path('usuarios/<int:pk>/reactivar/', UsuarioReactivarView.as_view(), name='reactivar_usuario'),
     path('usuarios/metricas/', UsuarioMetricasView.as_view(), name='metricas_usuarios'),
+    # ==========================================
+    # MÓDULO 
+    # ==========================================
+    path('api/reportes/', ReporteListarView.as_view(), name='listar_reportes'),
+    path('api/reportes/guardar/', ReporteGuardarView.as_view(), name='guardar_reporte'),
+    path('api/reportes/<int:pk>/', ReporteDetalleView.as_view(), name='detalle_reporte'),
+    path('api/reportes/<int:pk>/exportar-pdf/', ReporteExportarPDFView.as_view(), name='exportar_pdf_reporte'),
 ]
